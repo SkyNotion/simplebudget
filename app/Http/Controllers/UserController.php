@@ -23,11 +23,6 @@ class UserController extends Controller {
 		'password.required' => 'Password is missing'
 	];
 
-	/**
-	 * Show the form for creating a new resource.
-	 *
-	 * @return Response
-	 */
 	public function create(Request $request)
 	{	
 		$params = $request->all();
