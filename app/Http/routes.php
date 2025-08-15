@@ -34,10 +34,12 @@ Route::group(['prefix' => 'budget'], function(){
 		Route::get('account/{account_id}', 'AccountController@show');
 		Route::patch('account/{account_id}', 'AccountController@update');
 		Route::delete('account/{account_id}', 'AccountController@destroy');
+		Route::get('account/{account_id}/accounts', 'AccountController@childaccounts');
 
-		Route::get('account/{account_id}/transactions', 'TransactionController@show');
+		Route::get('account/{account_id}/transactions', 'TransactionController@index');
 		Route::put('account/{account_id}/transactions', 'TransactionController@create');
 		Route::delete('account/{account_id}/transactions/{transaction_id}', 'TransactionController@destroy');
+
 		Route::get('notifications', 'NotificationController@index');
 	});
 });
