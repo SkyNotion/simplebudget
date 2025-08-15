@@ -1,0 +1,610 @@
+openapi: 3.0.0
+info:
+  title: SimpleBudgetServer API
+  description: This is the api definition for the SimpleBudgetServer
+  version: 1.0.0
+servers:
+  - url: https://meshanthony.name.ng/api/budget
+components:
+  securitySchemes:
+    apiKey:
+      type: apiKey
+      in: header
+      name: api-key
+  responses:
+    statusUnauthorized:
+      description: Unauthorized, api key is missing or invalid
+    statusParentNotFound:
+      description: Parent account, does not exists
+  schemas:
+    AccountInfo:
+      type: object
+      properties:
+        account_id:
+          type: integer
+          format: int64
+          example: 27438199
+        parent_id:
+          type: integer
+          format: int64
+          example: 424553222
+        user_id:
+          type: integer
+          format: int64
+          example: 13131331
+        name:
+          type: string
+          example: Example Bank Savings
+        balance:
+          type: number
+          format: double
+          example: 733000
+        balance_limit:
+          type: number
+          format: double
+          example: 34012309
+        currency:
+          type: string
+          example: NGN
+        type:
+          type: string
+          example: Bank
+        description:
+          type: string
+          example: Joseph's savings allowance
+        created_at:
+          type: string
+          example: 2025-08-07
+        updated_at:
+          type: string
+          example: 2025-08-08
+    TransactionResponse:
+      type: object
+      properties:
+        transaction_id:
+          type: integer
+          format: int64
+          example: 349023932
+        date:
+          type: string
+          example: 2025-08-10
+        description:
+          type: string
+          example: Payment for food
+        deposit:
+          type: number
+          format: double
+          example: 0
+        withdrawal:
+          type: number
+          format: double
+          example: 5000
+        balance:
+          type: number
+          format: double
+          example: 500000 
+paths:
+  /user:
+    post:
+      summary: Create a new user account
+      description: Creates new user account with an email and password.
+      parameters:
+        - in: query
+          name: name
+          description: The name of the new account user
+          required: true
+          schema:
+            type: string
+          example: John Doe
+        - in: query
+          name: email
+          description: The email address of the new account
+          required: true
+          schema:
+            type: string
+          example: johndoe@example.com
+        - in: query
+          name: password
+          description: The password of the new account
+          required: true
+          schema:
+            type: string
+          example: JohnDoe123
+        - in: query
+          name: telegram_username
+          description: optional telegram username to receive notifications through telegram
+          schema:
+            type: string
+          example: BotFather
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                    format: int64
+                    example: 12132424
+                  name:
+                    type: string
+                    example: John Doe
+                  email:
+                    type: string
+                    example: johndoe@example.com
+        '400':
+          description: Email or password missing | Invalid email or password format | Account exists
+  /api_key:
+    post:
+      summary: Create new api key
+      description: Creates a new api key for an account, the api key would be used access various money management services.
+      parameters:
+        - in: query
+          name: name
+          description: The name of the api key
+          required: true
+          schema:
+            type: string
+          example: main
+        - in: query
+          name: email
+          description: The email address of the new account
+          required: true
+          schema:
+            type: string
+          example: johndoe@example.com
+        - in: query
+          name: password
+          description: The password of the new account
+          required: true
+          schema:
+            type: string
+          example: JohnDoe123
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  user_id:
+                    type: integer
+                    format: int64
+                    example: 999990000
+                  name:
+                    type: string
+                    example: main
+                  key:
+                    type: string
+                    example: e04d3a4e40b743f0bf6b68f18e829d97
+                  created_at:
+                    type: string
+                    example: 2025-07-05
+        '400':
+          description: Invalid request | Name of api key exists, use another
+        '401':
+          description: Unauthorized, invalid email or password
+  /api_key/{api_key}:
+    delete:
+      summary: Revoke an api key
+      description: Revokes an api key from an account, it renders an api key tied to account invalid.
+      parameters:
+        - in: path
+          name: api_key
+          description: The api key to be removed, can also be the name of the api key
+          required: true
+          schema:
+            type: string
+          example: e04d3a4e40b743f0bf6b68f18e829d97
+        - in: query
+          name: email
+          description: The email address of the new account
+          required: true
+          schema:
+            type: string
+          example: johndoe@gmail.com
+        - in: query
+          name: password
+          description: The password of the new account
+          required: true
+          schema:
+            type: string
+          example: JohnDoe123
+      responses:
+        '200':
+          description: Successful
+        '400':
+          description: Invalid request | Api key or name does not exist
+        '401':
+          description: Unauthorized, invalid email or password
+  /account:
+    post:
+      security:
+        - apiKey: []
+      summary: Create a new account
+      description: Creates a new account with addional options, if no parent account is set then the account is created as a sub account of the root account.
+      requestBody:
+        description: Create a new account with options
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: 
+                - name
+              properties:
+                parent_id:
+                  type: integer
+                  format: int64
+                  example: 430209348
+                name:
+                  type: string
+                  example: Savings
+                opening_balance:
+                  type: integer
+                  format: int64
+                  example: 999999
+                balance_limit:
+                  type: integer
+                  format: int64
+                  example: 999999
+                currency:
+                  type: string
+                  example: NGN
+                type:
+                  type: string
+                  example: Bank
+                description:
+                  type: string
+                  example: My Savings Account
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountInfo"
+        '400':
+          description: Invalid request
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          $ref: "#/components/responses/statusParentNotFound"
+    get:
+      security:
+        - apiKey: []
+      summary: Get all sub accounts
+      description: Gets all sub accounts from a specified parent account, if a parent account is not specified it gets all sub accounts of the root account.
+      parameters:
+        - in: query
+          name: parentAccounts
+          schema:
+            type: string
+          example: Banks/Zenith Bank
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccountInfo"
+        '204':
+          description: No sub accounts
+        '400':
+          description: Invalid request
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          $ref: "#/components/responses/statusParentNotFound"
+  /account/{account_id}:
+    patch:
+      security:
+        - apiKey: []
+      summary: Update account options
+      description: Updates specified account options
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema:
+            type: string
+          example: 27438199
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Savings
+                description:
+                  type: string
+                  example: My Savings Account
+                path_id:
+                  type: string
+                  example: "43020934/21228929"
+                parentAccounts:
+                  type: string
+                  example: Banks/First Bank
+                type:
+                  type: string
+                  example: Asset
+                currency:
+                  type: string
+                  example: USD
+                balanceLimit:
+                  type: number
+                  format: double
+                  example: 13000000
+                openingBalance:
+                  type: number
+                  format: double
+                  example: 259233.11
+                date:
+                  type: string
+                  example: 2025-08-07
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                allOf:
+                  - $ref: "#/components/schemas/AccountInfo"
+                type: object
+                properties:
+                  balance:
+                    type: number
+                    format: double
+                    example: 259233.11
+                  type:
+                    type: string
+                    example: Asset
+                  path:
+                    type: string
+                    example: Banks/First Bank/Savings
+                  currency:
+                    type: string
+                    example: USD
+                  description:
+                    type: string
+                    example: My Savings Account
+                  path_id:
+                    type: string
+                    example: "43020934/21228929/27438199"
+                  balanceLimit:
+                    type: number
+                    format: double
+                    example: 13000000
+        '400':
+          description: Invalid request
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          description: Account does not exist
+    delete:
+      security:
+        - apiKey: []
+      summary: Delete an account
+      description: Delete an account
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema:
+            type: string
+          example: 27438199
+      responses:
+        '200':
+          description: Successful
+        '400':
+          description: Invalid request
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          description: Account does not exist
+  /account/{account_id}/transactions:
+    get:
+      security:
+        - apiKey: []
+      summary: Get account transactions
+      description: Gets account transactions if no transaction id is specified, Gets in 100 transaction blocks where starting point is specified by the offset
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          description: The account id of the account to be modified
+          schema:
+            type: integer
+            format: int64
+          example: 23909394
+        - in: query
+          name: offset
+          description: The offset to fetch 100 transactions defaults to 0 if not specified, 0 fetches in ascending order, -1 fetches in decsending order
+          schema:
+            type: integer
+            format: int64
+          example: 0
+        - in: query
+          name: search
+          description: Fetch a list of transactions that belongs to a particular search query
+          schema:
+            type: string
+          example: food
+        - in: query
+          name: date_range
+          description: "Fetch a list of transactions from a particular date range"
+          schema:
+            type: string
+          example: "2025-08-01:2025-08-07"
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionResponse"
+        '204':
+          description: No transactions found
+        '400':
+          description: Invalid request
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          description: Transaction does not exist
+    put:
+      security:
+        - apiKey: []
+      summary: Update or add new transaction
+      description: Update an existing transaction or add new transaction
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          description: The account id of the account to be modified
+          schema:
+            type: integer
+            format: int64
+          example: 23909394
+        - in: query
+          name: transaction_id
+          description: This is used to update a transaction if provided
+          schema:
+            type: integer
+            format: int64
+          example: 23473794
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                date:
+                  type: string
+                  example: 2025-08-10
+                description:
+                  type: string
+                  example: Payment for food
+                deposit:
+                  type: number
+                  format: double
+                  example: 0
+                withdrawal:
+                  type: number
+                  format: double
+                  example: 5000
+                balance:
+                  type: number
+                  format: double
+                  example: 500000  
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionResponse"
+        '400':
+          description: Invalid request
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          description: Transaction does not exist
+  /account/{account_id}/transactions/{transaction_id}:
+    delete:
+      security:
+        - apiKey: []
+      summary: Delete an existing transaction
+      description: Delete an existing transaction by specifying the transaction id
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          description: The account id of the account to be modified
+          schema:
+            type: integer
+            format: int64
+          example: 23909394
+        - in: path
+          name: transaction_id
+          required: true
+          description: The transaction id of the transaction to be deleted
+          schema:
+            type: integer
+            format: int64
+          example: 898238231
+      responses:
+        '200':
+          description: Successful
+        '400':
+          description: Invalid request
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          description: Transaction does not exist
+  /account/{account_id}/budget:
+    put:
+      summary: update or create a new budget in a specified account
+  /notifications:
+    get:
+      security:
+        - apiKey: []
+      summary: Get account notifications
+      description: Get account notifications, including transactions alert, buget usage alerts e.t.c, by default it polls for new notifications using long polling but the query parameter `all` can be used to fetch all past notifications.
+      parameters:
+        - in: query
+          name: all
+          schema:
+            type: boolean
+          example: false
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    notification_id:
+                      type: integer
+                      format: int64
+                      example: 83884949
+                    user_id:
+                      type: integer
+                      format: int64
+                      example: 4930434
+                    source:
+                      type: string
+                      enum:
+                        - transaction
+                        - account
+                        - budget
+                    source_id:
+                      type: integer
+                      example: 43820804
+                    content:
+                      type: string
+                      example: You have passed your budget
+                    date:
+                      type: string
+                      example: 2025-08-06
+        '204':
+          description: No new notifications
+        '400':
+          description: Invalid request
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+          
+          
