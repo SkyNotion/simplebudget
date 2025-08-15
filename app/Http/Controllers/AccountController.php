@@ -8,8 +8,31 @@ use Illuminate\Http\Request;
 use Validator;
 
 use App\Account;
+use App\Exceptions\PlainHttpException;
 
 class AccountController extends Controller {
+
+	public function get_account($user_id, $account_id, $message = 'Account does not exist'){
+		$account = Account::whereRaw('user_id = ? and account_id = ?', 
+			[$user_id, $account_id])->first();
+		if(!sizeof($account)){
+			throw new PlainHttpException($message, 404);
+		}
+		return $account;
+	}
+
+	public function get_children($user_id, $parent_id){
+		$accounts = Account::whereRaw('user_id = ? and parent_id = ?', 
+			[$user_id, $parent_id])->get()->toArray();
+		if(!sizeof($accounts)){
+			return array();
+		}
+		foreach($accounts as &$account){
+			$account['children'] = $this->get_children($user_id, $account['account_id']);
+		}
+		return $accounts;
+	}
+
 	/**
 	 * Display a listing of the resource.
 	 *
@@ -17,9 +40,25 @@ class AccountController extends Controller {
 	 */
 	public function index(Request $request)
 	{
-		$accounts = Account::where('user_id', '=', $request->user_id)->get();
+		$accounts = Account::where('user_id', $request->user_id)->
+						whereNull('parent_id')->get()->toArray();
 		if(!sizeof($accounts)){
-			return response(204);
+			return response('No accounts found', 204);
+		}
+		foreach($accounts as &$account){
+			$account['children'] = $this->get_children($request->user_id, $account['account_id']);
+		}
+		return response()->json($accounts, 200);
+	}
+
+	public function childaccounts(Request $request, $account_id = null){
+		$accounts = Account::whereRaw('user_id = ? and parent_id = ?', 
+			[$request->user_id, $account_id])->get()->toArray();
+		if(!sizeof($accounts)){
+			throw new PlainHttpException($message, 404);
+		}
+		foreach($accounts as &$account){
+			$account['children'] = $this->get_children($request->user_id, $account['account_id']);
 		}
 		return response()->json($accounts, 200);
 	}
@@ -37,15 +76,11 @@ class AccountController extends Controller {
 		);
 
 		if($rv->fails()){
-			return response()->json(['error' => $rv->errors()->first()], 400);
+			throw new PlainHttpException($rv->errors()->first(), 400);
 		}
 
 		if(isset($body['parent_id'])){
-			if(!sizeof(Account::whereRaw(
-				'account_id = ? and user_id = ?', [$body['parent_id'], $request->user_id]
-			)->first())){
-				return response()->json(["error" => 'Parent account, does not exists'], 404);
-			}
+			$this->get_account($request->user_id, $body['parent_id'], 'Parent account, does not exists');
 		}else{$body['parent_id'] = null;}
 
 		$model = [
@@ -73,16 +108,6 @@ class AccountController extends Controller {
 	}
 
 	/**
-	 * Store a newly created resource in storage.
-	 *
-	 * @return Response
-	 */
-	public function store()
-	{
-		//
-	}
-
-	/**
 	 * Display the specified resource.
 	 *
 	 * @param  int  $id
@@ -90,23 +115,7 @@ class AccountController extends Controller {
 	 */
 	public function show(Request $request, $account_id = null)
 	{
-		$account = Account::whereRaw('user_id = ? and account_id = ?', 
-			[$request->user_id, $account_id])->first();
-		if(!sizeof($account)){
-			return response()->json(['error' => 'Account does not exist'], 404);
-		}
-		return response()->json($account, 200);
-	}
-
-	/**
-	 * Show the form for editing the specified resource.
-	 *
-	 * @param  int  $id
-	 * @return Response
-	 */
-	public function edit($id)
-	{
-		//
+		return response()->json($this->get_account($request->user_id, $account_id), 200);
 	}
 
 	/**
@@ -117,12 +126,9 @@ class AccountController extends Controller {
 	 */
 	public function update(Request $request, $account_id = null)
 	{
-		$account = Account::whereRaw('user_id = ? and account_id = ?', 
-			[$request->user_id, $account_id])->first();
-		if(!sizeof($account)){
-			return response()->json(['error' => 'Account not found'], 404);
-		}
-		$account
+		$account = $this->get_account($request->user_id, $account_id);
+		$account->update($request->all());
+		$account->fresh();
 		return response()->json($account, 200);
 	}
 
@@ -132,9 +138,10 @@ class AccountController extends Controller {
 	 * @param  int  $id
 	 * @return Response
 	 */
-	public function destroy($id)
+	public function destroy(Request $request, $account_id = null)
 	{
-		//
+		$this->get_account($request->user_id, $account_id)->delete();
+		return response('Successful', 200);
 	}
 
 }
