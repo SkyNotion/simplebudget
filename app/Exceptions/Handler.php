@@ -3,6 +3,8 @@
 use Exception;
 use Illuminate\Foundation\Exceptions\Handler as ExceptionHandler;
 
+use App\Exceptions\PlainHttpException;
+
 class Handler extends ExceptionHandler {
 
 	/**
@@ -35,8 +37,10 @@ class Handler extends ExceptionHandler {
 	 * @return \Illuminate\Http\Response
 	 */
 	public function render($request, Exception $e)
-	{
+	{	
+		if($e instanceof PlainHttpException){
+			return $e->render($request);
+		}
 		return parent::render($request, $e);
 	}
-
 }
