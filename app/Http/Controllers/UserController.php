@@ -44,7 +44,7 @@ class UserController extends Controller {
 
 		$params['password'] = Hash::make($params['password']);
 
-	    return response()->json(array_intersect_key(User::create($params)->attributesToArray(), ['user_id' => '', 'name' => '', 'email' => '']), 201);
+	    return response()->json(User::create($params)->attributesToArray(), 201);
 	}
 
 	public function api_key(Request $request, $api_key = null){
