@@ -72,6 +72,17 @@ CREATE TABLE IF NOT EXISTS transactions (
 	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
 );
 
+-- create a table to store budgets
+CREATE TABLE IF NOT EXISTS budgets (
+	budget_id BIGSERIAL PRIMARY KEY,
+	account_id BIGINT NOT NULL REFERENCES accounts(account_id) ON DELETE CASCADE,
+	name TEXT,
+	description TEXT,
+	budget_limit DOUBLE PRECISION,
+	entities TEXT,
+	created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
+);
+
 -- create a table to store notifications
 CREATE TABLE IF NOT EXISTS notifications (
 	notification_id BIGSERIAL PRIMARY KEY,
