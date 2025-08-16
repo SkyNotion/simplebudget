@@ -65,9 +65,6 @@ components:
           type: integer
           format: int64
           example: 349023932
-        date:
-          type: string
-          example: 2025-08-10
         description:
           type: string
           example: Payment for food
@@ -83,6 +80,12 @@ components:
           type: number
           format: double
           example: 500000 
+        created_at:
+          type: string
+          example: 2025-08-10
+        updated_at:
+          type: string
+          example: 2025-08-10
 paths:
   /user:
     post:
@@ -276,14 +279,8 @@ paths:
     get:
       security:
         - apiKey: []
-      summary: Get all sub accounts
-      description: Gets all sub accounts from a specified parent account, if a parent account is not specified it gets all sub accounts of the root account.
-      parameters:
-        - in: query
-          name: parentAccounts
-          schema:
-            type: string
-          example: Banks/Zenith Bank
+      summary: Get all accounts
+      description: Gets all accounts.
       responses:
         '200':
           description: Successful
@@ -294,14 +291,34 @@ paths:
                 items:
                   $ref: "#/components/schemas/AccountInfo"
         '204':
-          description: No sub accounts
-        '400':
-          description: Invalid request
+          description: No accounts found
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+  /account/{account_id}:
+    get:
+      security:
+        - apiKey: []
+      summary: Get account info
+      description: Gets account info from a specified account.
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 7977979
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/AccountInfo"
         '401':
           $ref: "#/components/responses/statusUnauthorized"
         '404':
-          $ref: "#/components/responses/statusParentNotFound"
-  /account/{account_id}:
+          description: Account does not exist
     patch:
       security:
         - apiKey: []
@@ -312,7 +329,8 @@ paths:
           name: account_id
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
           example: 27438199
       requestBody:
         content:
@@ -320,35 +338,30 @@ paths:
             schema:
               type: object
               properties:
+                parent_id:
+                  type: integer
+                  format: int64
+                  example: 430209348
                 name:
                   type: string
                   example: Savings
+                balance:
+                  type: integer
+                  format: int64
+                  example: 999999
+                balance_limit:
+                  type: integer
+                  format: int64
+                  example: 999999
+                currency:
+                  type: string
+                  example: NGN
+                type:
+                  type: string
+                  example: Bank
                 description:
                   type: string
                   example: My Savings Account
-                path_id:
-                  type: string
-                  example: "43020934/21228929"
-                parentAccounts:
-                  type: string
-                  example: Banks/First Bank
-                type:
-                  type: string
-                  example: Asset
-                currency:
-                  type: string
-                  example: USD
-                balanceLimit:
-                  type: number
-                  format: double
-                  example: 13000000
-                openingBalance:
-                  type: number
-                  format: double
-                  example: 259233.11
-                date:
-                  type: string
-                  example: 2025-08-07
       responses:
         '200':
           description: Successful
@@ -366,24 +379,20 @@ paths:
                   type:
                     type: string
                     example: Asset
-                  path:
-                    type: string
-                    example: Banks/First Bank/Savings
                   currency:
                     type: string
                     example: USD
                   description:
                     type: string
-                    example: My Savings Account
-                  path_id:
-                    type: string
-                    example: "43020934/21228929/27438199"
-                  balanceLimit:
+                    example: My Assets Account
+                  parent_id:
+                    type: integer
+                    format: int64
+                    example: 27438199
+                  balance_limit:
                     type: number
                     format: double
                     example: 13000000
-        '400':
-          description: Invalid request
         '401':
           $ref: "#/components/responses/statusUnauthorized"
         '404':
@@ -398,13 +407,39 @@ paths:
           name: account_id
           required: true
           schema:
-            type: string
+            type: integer
+            format: int64
           example: 27438199
       responses:
         '200':
           description: Successful
-        '400':
-          description: Invalid request
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          description: Account does not exist
+  /account/{account_id}/accounts:
+    get:
+      security:
+        - apiKey: []
+      summary: Get all sub accounts
+      description: Gets all sub accounts from the specified account.
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          schema:
+            type: integer
+            format: int64
+          example: 7977979
+      responses:
+        '200':
+          description: Successful
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/AccountInfo"
         '401':
           $ref: "#/components/responses/statusUnauthorized"
         '404':
@@ -425,13 +460,6 @@ paths:
             format: int64
           example: 23909394
         - in: query
-          name: offset
-          description: The offset to fetch 100 transactions defaults to 0 if not specified, 0 fetches in ascending order, -1 fetches in decsending order
-          schema:
-            type: integer
-            format: int64
-          example: 0
-        - in: query
           name: search
           description: Fetch a list of transactions that belongs to a particular search query
           schema:
@@ -442,7 +470,7 @@ paths:
           description: "Fetch a list of transactions from a particular date range"
           schema:
             type: string
-          example: "2025-08-01:2025-08-07"
+          example: "2025-08-01;2025-08-07"
       responses:
         '200':
           description: Successful
@@ -454,17 +482,13 @@ paths:
                   $ref: "#/components/schemas/TransactionResponse"
         '204':
           description: No transactions found
-        '400':
-          description: Invalid request
         '401':
           $ref: "#/components/responses/statusUnauthorized"
-        '404':
-          description: Transaction does not exist
-    put:
+    post:
       security:
         - apiKey: []
-      summary: Update or add new transaction
-      description: Update an existing transaction or add new transaction
+      summary: Add new transaction
+      description: Adds a new transaction
       parameters:
         - in: path
           name: account_id
@@ -474,22 +498,12 @@ paths:
             type: integer
             format: int64
           example: 23909394
-        - in: query
-          name: transaction_id
-          description: This is used to update a transaction if provided
-          schema:
-            type: integer
-            format: int64
-          example: 23473794
       requestBody:
         content:
           application/json:
             schema:
               type: object
               properties:
-                date:
-                  type: string
-                  example: 2025-08-10
                 description:
                   type: string
                   example: Payment for food
@@ -501,10 +515,6 @@ paths:
                   type: number
                   format: double
                   example: 5000
-                balance:
-                  type: number
-                  format: double
-                  example: 500000  
       responses:
         '200':
           description: Successful
@@ -519,7 +529,7 @@ paths:
         '401':
           $ref: "#/components/responses/statusUnauthorized"
         '404':
-          description: Transaction does not exist
+          description: Account does not exist
   /account/{account_id}/transactions/{transaction_id}:
     delete:
       security:
@@ -546,15 +556,141 @@ paths:
       responses:
         '200':
           description: Successful
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          description: Account or transaction does not exist
+  /account/{account_id}/budget:
+    get:
+      security:
+        - apiKey: []
+      summary: Get a budget in a specified account
+      description: updates or creates a new budget in a specified account
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          description: The account id of the account to be budgetted
+          schema:
+            type: integer
+            format: int64
+          example: 23909394
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  budget_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  name:
+                    type: string
+                    example: Monthly budget
+                  description:
+                    type: string
+                    example: Budget when using Example Bank
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        description:
+                          type: string
+                        amount:
+                          type: number
+                    example:
+                      - description: For rent
+                        amount: 700000
+                      - description: For food
+                        amount: 550000
+                      - description: For investments
+                        amount: 90000000
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          description: Account does not exist
+    put:
+      security:
+        - apiKey: []
+      summary: update or create a new budget in a specified account
+      description: updates or creates a new budget in a specified account
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          description: The account id of the account to be budgetted
+          schema:
+            type: integer
+            format: int64
+          example: 23909394
+      requestBody:
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                name:
+                  type: string
+                  example: Monthly budget
+                description:
+                  type: string
+                  example: Budget when using Example Bank
+                entities:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      description:
+                        type: string
+                      amount:
+                        type: number
+                  example:
+                    - description: For rent
+                      amount: 700000
+                    - description: For food
+                      amount: 550000
+                    - description: For investments
+                      amount: 90000000
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/TransactionResponse"
         '400':
           description: Invalid request
         '401':
           $ref: "#/components/responses/statusUnauthorized"
         '404':
-          description: Transaction does not exist
-  /account/{account_id}/budget:
-    put:
+          description: Account does not exist
+    delete:
+      security:
+        - apiKey: []
       summary: update or create a new budget in a specified account
+      description: updates or creates a new budget in a specified account
+      parameters:
+        - in: path
+          name: account_id
+          required: true
+          description: The account id of the account to be budgetted
+          schema:
+            type: integer
+            format: int64
+          example: 23909394
+      responses:
+        '200':
+          description: Successful
+        '401':
+          $ref: "#/components/responses/statusUnauthorized"
+        '404':
+          description: Account does not exist
   /notifications:
     get:
       security:
@@ -588,9 +724,9 @@ paths:
                     source:
                       type: string
                       enum:
-                        - transaction
-                        - account
                         - budget
+                        - account
+                        - transaction
                     source_id:
                       type: integer
                       example: 43820804
@@ -606,5 +742,3 @@ paths:
           description: Invalid request
         '401':
           $ref: "#/components/responses/statusUnauthorized"
-          
-          
