@@ -11,6 +11,8 @@ use DB;
 use App\Transaction;
 use App\Account;
 
+use App\Http\Controllers\NotificationController;
+
 class TransactionController extends Controller {
 
 	public function index(Request $request, $account_id = null)
@@ -73,8 +75,18 @@ class TransactionController extends Controller {
 		}
 
 		$transaction->save();
+		$transaction = $transaction->fresh()->toArray();
 
-		return response()->json($transaction->fresh()->toArray(), 200);
+		if(isset($body['deposit'])){
+			NotificationController::create([
+				'user_id' => $request->user_id,
+				'source' => 'transaction',
+				'source_id' => $transaction['transaction_id'],
+				'content' => json_encode($transaction)
+			]);
+		}
+
+		return response()->json($transaction, 200);
 	}
 
 	public function destroy(Request $request, $account_id = null, $transaction_id = null)
