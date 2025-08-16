@@ -40,6 +40,10 @@ Route::group(['prefix' => 'budget'], function(){
 		Route::post('account/{account_id}/transactions', 'TransactionController@create');
 		Route::delete('account/{account_id}/transactions/{transaction_id}', 'TransactionController@destroy');
 
+		Route::put('account/{account_id}/budget', 'BudgetController@create');
+		Route::get('account/{account_id}/budget', 'BudgetController@index');
+		Route::delete('account/{account_id}/budget', 'BudgetController@destroy');
+
 		Route::get('notifications', 'NotificationController@index');
 	});
 });
