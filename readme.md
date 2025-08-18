@@ -6,7 +6,19 @@ Simple Budget Server is the server software powering Simple Budget, And it is th
 
 Simple Budget Server is built with `larave v5.0` framework, Simple Budget Server has tested only with `php v5.6`
 
+NOTE: To develop `Simple Budget Server` i looked at [gnucash](https://gnucash.org/) to understand how it does accounts, transactions and budgeting.
+
 ## Features
+    - Create user accounts
+    - Create api keys
+    - Create accounts (including child accounts) 
+    - Create budgets for accounts
+    - Create account transactions
+    - Get accounts (including child accounts), transaction, budgets info
+    - Edit accounts, transactions, budgets
+    - Delete accounts, transaction, bugets
+    - Revoke api keys
+    - Get notifications when certain events occurs (e.g gone past a budget)
 
 ## API Documentation
 
@@ -173,6 +185,3 @@ sudo systemctl restart nginx.service
 
 in your browser paste this link http://localhost/budget/docs and press enter, The API 
 documentation should come up
-
-## License
-
