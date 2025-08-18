@@ -1,23 +1,178 @@
-## Laravel PHP Framework
+## Simple Budget Server
 
-[![Build Status](https://travis-ci.org/laravel/framework.svg)](https://travis-ci.org/laravel/framework)
-[![Total Downloads](https://poser.pugx.org/laravel/framework/downloads.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Stable Version](https://poser.pugx.org/laravel/framework/v/stable.svg)](https://packagist.org/packages/laravel/framework)
-[![Latest Unstable Version](https://poser.pugx.org/laravel/framework/v/unstable.svg)](https://packagist.org/packages/laravel/framework)
-[![License](https://poser.pugx.org/laravel/framework/license.svg)](https://packagist.org/packages/laravel/framework)
+Simple Budget is a very simple budgeting software, It consists of two parts the server (Which this is) and a client, Although the server's API can be utilized by  other clients.
 
-Laravel is a web application framework with expressive, elegant syntax. We believe development must be an enjoyable, creative experience to be truly fulfilling. Laravel attempts to take the pain out of development by easing common tasks used in the majority of web projects, such as authentication, routing, sessions, queueing, and caching.
+Simple Budget Server is the server software powering Simple Budget, And it is the core of the whole application.
 
-Laravel is accessible, yet powerful, providing powerful tools needed for large, robust applications. A superb inversion of control container, expressive migration system, and tightly integrated unit testing support give you the tools you need to build any application with which you are tasked.
+Simple Budget Server is built with `larave v5.0` framework, Simple Budget Server has tested only with `php v5.6`
 
-## Official Documentation
+## Features
 
-Documentation for the framework can be found on the [Laravel website](http://laravel.com/docs).
+## API Documentation
 
-## Contributing
+The API Documentation can be found [here](https://api.meshanthony.name.ng/budget/docs) (swagger-ui) and for those who prefer [scaler](https://api.meshanthony.name.ng/budget/docs/scaler)
 
-Thank you for considering contributing to the Laravel framework! The contribution guide can be found in the [Laravel documentation](http://laravel.com/docs/contributions).
+## Installation
 
-### License
+### Install `php`
 
-The Laravel framework is open-sourced software licensed under the [MIT license](http://opensource.org/licenses/MIT)
+`php v5.6` is going to be installed as it is  the max version supported by `laravel v5.0`
+
+**For Arch Linux**
+
+You can find `php v5.6` on the [AUR](https://aur.archlinux.org/packages/php56) and `makepkg` or just use `yay`
+```bash
+sudo yay -S php56
+```
+
+**For debian/ubuntu**
+
+You can find installation instructions for **debian** [here](https://docs.vultr.com/how-to-install-php-5-6-on-debian-12)
+
+You can find installation instructions for **ubuntu** [here](https://docs.vultr.com/how-to-install-php-5-6-on-ubuntu-22-04)
+
+After following those instructions run
+```bash
+sudo apt install php5.6-fpm php5.6-mcrypt php5.6-pdo php5.6-mysql
+
+# soft link so we can use `php56` as our binary not `php5.6`
+sudo ln -s $(which php5.6) /usr/bin/php56
+```
+
+### Install `composer v2.2`
+
+**REMEMBER** where you see
+```bash
+php composer-setup.php
+```
+replace with
+```bash
+php composer-setup.php --2.2
+```
+to install `composer v2.2`
+
+Now you can follow the composer [installation instructions](https://getcomposer.org/download/)
+
+### Install `redis`
+
+```bash
+sudo apt install redis
+```
+
+### Install `mariadb` or `mysql` database server
+
+`mariadb` is going to be installed as it is a drop in replacement for `mysql` that is available on most Linux distro's package repository.
+
+Read the difference between [mariadb and mysql](https://www.geeksforgeeks.org/mysql/difference-between-mysql-and-mariadb/)
+
+**For Arch Linux**
+
+```bash
+sudo pacman -S mariadb
+sudo mariadb-install-db --user=mysql --basedir=/usr --datadir=/var/lib/mysql
+sudo systemctl enable --now mariadb.service
+```
+
+**For debian/ubuntu**
+
+```bash
+sudo apt install mariadb-server
+```
+
+**To configure**
+
+```bash
+sudo mariadb -u root -p
+```
+then in the mariadb command line
+
+```sql
+CREATE USER 'budget'@'localhost' IDENTIFIED BY '<YOUR_PASSWORD>';
+CREATE DATABASE budget;
+GRANT ALL PRIVILEGES ON budget.* TO 'budget'@'localhost';
+```
+exit the mariadb command line with a `\q` command
+
+### Install a webserver
+
+`nginx` is going to be installed as i believe it is a more [efficient](https://markaicode.com/nginx-vs-apache-2025-performance-comparison/) webserver than `apache` and is what i use personally.
+
+**For Arch Linux**
+
+```bash
+sudo pacman -S nginx
+```
+**For debian/ubuntu**
+
+```bash
+sudo apt install nginx
+```
+
+**To configure**
+
+```bash
+sudo mkdir -p /var/www/html/simplebudget_server
+sudo nano /etc/nginx/sites-available/simplebudget_server.conf
+```
+and paste this ⬇️
+```
+server{
+        listen 80;
+        root /var/www/html/simplebudget_server/public;
+        index index.php;
+
+        location / {
+            try_files $uri $uri/ /index.php?$query_string;
+        }
+
+        location ~ \.php$ {
+          include /etc/nginx/fastcgi.conf;
+          fastcgi_pass unix:/run/php/php5.6-fpm.sock;
+          fastcgi_hide_header X-Powered-By;
+        }
+}
+```
+save `ctrl+o then Enter` and exit `ctrl+x`
+
+### Clone the repo
+
+```bash
+git clone https://github.com/Mesh-Sys/simplebudget_server.git
+```
+install dependencies
+```bash
+cd simplebudget_server
+```
+add enviromental variables (e.g user password for database)
+```bash
+# copy example eviromental variables file
+cp .env.example .env
+# add your own env variables
+nano .env
+```
+install dependencies
+```bash
+php56 $(which composer) install
+```
+make it visible to the webserver
+```bash
+# move the folder to the server root in specified in our nginx configuration
+sudo mv simplebudget_server /var/www/html/simplebudget_server
+
+# change ownership to webserver user (usually www-data for nginx and php fpm)
+sudo chown -R www-data:www-data /var/www/html/simplebudget_server
+
+# verify nginx config
+sudo nginx -t
+
+# restart nginx
+sudo systemctl restart nginx.service
+```
+
+## Check if the server is active
+
+in your browser paste this link http://localhost/budget/docs and press enter, The API 
+documentation should come up
+
+## License
+
