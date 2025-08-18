@@ -673,13 +673,13 @@ paths:
     delete:
       security:
         - apiKey: []
-      summary: update or create a new budget in a specified account
-      description: updates or creates a new budget in a specified account
+      summary: delete budget in a specified account
+      description: delete budget in a specified account
       parameters:
         - in: path
           name: account_id
           required: true
-          description: The account id of the account to be budgetted
+          description: The account id of the account that has been budgetted
           schema:
             type: integer
             format: int64
