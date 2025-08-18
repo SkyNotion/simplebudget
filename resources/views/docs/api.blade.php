@@ -10,8 +10,16 @@
         <script src="{{ asset('/swagger-ui/swagger-ui-standalone-preset.js') }}"></script>
         <script src="{{ asset('/swagger-ui/swagger-ui-bundle.js') }}"></script>
         <script>
+            function HideTopbarPlugin() {
+              return {
+                components: {
+                  Topbar: function() { return null }
+                }
+              }
+            }
+
             window.onload = function() {
-                const ui = SwaggerUIBundle({
+                window.ui = SwaggerUIBundle({
                     url: "{{ asset("/api/$webapp/api.yaml") }}",
                     dom_id: '#swagger-ui',
                     deepLinking: true,
@@ -20,11 +28,11 @@
                         SwaggerUIStandalonePreset
                     ],
                     plugins: [
-                        SwaggerUIBundle.plugins.DownloadUrl
+                        SwaggerUIBundle.plugins.DownloadUrl,
+                        HideTopbarPlugin
                     ],
                     layout: "StandaloneLayout",
-                })
-                window.ui = ui
+                });
             }
         </script>
     </body>
