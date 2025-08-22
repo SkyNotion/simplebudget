@@ -9,16 +9,16 @@ Simple Budget Server is built with `larave v5.0` framework, Simple Budget Server
 NOTE: To develop `Simple Budget Server` i looked at [gnucash](https://gnucash.org/) to understand how it does accounts, transactions and budgeting.
 
 ## Features
-    - Create user accounts
-    - Create api keys
-    - Create accounts (including child accounts) 
-    - Create budgets for accounts
-    - Create account transactions
-    - Get accounts (including child accounts), transaction, budgets info
-    - Edit accounts, transactions, budgets
-    - Delete accounts, transaction, bugets
-    - Revoke api keys
-    - Get notifications when certain events occurs (e.g gone past a budget)
+    * Create user accounts
+    * Create api keys
+    * Create accounts (including child accounts) 
+    * Create budgets for accounts
+    * Create account transactions
+    * Get accounts (including child accounts), transaction, budgets info
+    * Edit accounts, transactions, budgets
+    * Delete accounts, transaction, bugets
+    * Revoke api keys
+    * Get notifications when certain events occurs (e.g gone past a budget)
 
 ## API Documentation
 
@@ -76,6 +76,7 @@ sudo apt install redis
 `mysql` is going to be installed as it is the database server was instructed to be used with this project.
 
 **For debian/ubuntu**
+
 `mysql v8.0` is going to be installed. As of writing this `mysql v8.4-lts` is available but `v8.4` removes the `default_authentication_plugin` config option that would allow `mysql_native_password` plugin to be set instead of ` caching_sha2_password` which is not supported by some clients for authentication, This project\`s version of `php-pdo` used by `laravel v5.0` Eloquent ORM does not support it. If anyone can get it running do create a pull request to update the readme with the instructions to set it up.
 
 ```bash
