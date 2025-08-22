@@ -9,16 +9,16 @@ Simple Budget Server is built with `larave v5.0` framework, Simple Budget Server
 NOTE: To develop `Simple Budget Server` i looked at [gnucash](https://gnucash.org/) to understand how it does accounts, transactions and budgeting.
 
 ## Features
-    * Create user accounts
-    * Create api keys
-    * Create accounts (including child accounts) 
-    * Create budgets for accounts
-    * Create account transactions
-    * Get accounts (including child accounts), transaction, budgets info
-    * Edit accounts, transactions, budgets
-    * Delete accounts, transaction, bugets
-    * Revoke api keys
-    * Get notifications when certain events occurs (e.g gone past a budget)
+    - Create user accounts
+    - Create api keys
+    - Create accounts (including child accounts) 
+    - Create budgets for accounts
+    - Create account transactions
+    - Get accounts (including child accounts), transaction, budgets info
+    - Edit accounts, transactions, budgets
+    - Delete accounts, transaction, bugets
+    - Revoke api keys
+    - Get notifications when certain events occurs (e.g gone past a budget)
 
 ## API Documentation
 
@@ -85,7 +85,7 @@ wget "https://dev.mysql.com/get/mysql-apt-config_0.8.34-1_all.deb"
 ```
 
 Note on installing the mysql apt config tool, 
-you must seclect `mysql-8.0` and choose the legacy authentication method when prompted (it sutomatically sets the `default_authentication_plugin` to `mysql_native_password`)
+you must seclect `mysql-8.0` and choose the legacy authentication method when prompted (it automatically sets the `default_authentication_plugin` to `mysql_native_password`)
 
 ```bash
 # install the mysql apt config tool
