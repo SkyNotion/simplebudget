@@ -55,6 +55,7 @@ class BudgetController extends Controller {
 			$budget->budget_limit = $budget_limit;
 		}	
 		$budget->save();
+		$budget->touch();
 		return response()->json($budget->fresh()->toArray(), 201);
 	}
 
