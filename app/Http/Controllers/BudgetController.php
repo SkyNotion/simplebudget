@@ -17,7 +17,12 @@ class BudgetController extends Controller {
 		if(!sizeof($account)){
 			return response()->json(['error' => 'Account does not exist'], 404);
 		}
-		return response()->json(Budget::where('account_id', $account_id)->first()->toArray(), 200);
+		$budget = Budget::where('account_id', $account_id)->first();
+
+		if($budget == null){
+			return response()->json([], 200);
+		}
+		return response()->json($budget->toArray(), 200);
 	}
 
 	public function create(Request $request, $account_id = null)
