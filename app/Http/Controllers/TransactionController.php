@@ -10,6 +10,7 @@ use DB;
 
 use App\Transaction;
 use App\Account;
+use App\Budget; 
 
 use App\Http\Controllers\NotificationController;
 
@@ -53,6 +54,8 @@ class TransactionController extends Controller {
 			return response()->json(['error' => 'Account does not exist'], 404);
 		}
 
+		$budget = Budget::where('account_id', '=', $account_id)->first();
+
 		$transaction = new Transaction;
 		$transaction->account_id = $account_id;
 
@@ -76,6 +79,33 @@ class TransactionController extends Controller {
 
 		$transaction->save();
 		$transaction = $transaction->fresh()->toArray();
+
+		if(sizeof($budget)){
+			$message = null;
+			$total_deposits = Transaction::whereRaw("account_id = ? AND created_at >= ?", 
+							[$account_id, $budget->updated_at->toDateTimeString()])
+							->whereNotNull("deposit")
+							->sum("deposit");
+			$total_withdrawal = Transaction::whereRaw("account_id = ? AND created_at >= ?", 
+							[$account_id, $budget->updated_at->toDateTimeString()])
+							->whereNotNull("withdrawal")
+							->sum("withdrawal");
+			$budget_balance = $total_withdrawal - $total_deposits;
+			$percentage = ($budget_balance/$budget->budget_limit)*100;
+			if($percentage > 70 && $percentage <= 100){
+				$message = "You have used $percentage% of your budget";
+			}elseif ($percentage > 100) {
+				$message = "You have passed your budget by ".(string)($budget_balance-$budget->budget_limit).$account->currency;
+			}
+			if($message != null){
+				NotificationController::create([
+					'user_id' => $request->user_id,
+					'source' => 'budget',
+					'source_id' => $account_id,
+					'content' => $message
+				]);
+			}
+		}
 
 		if(isset($body['deposit'])){
 			NotificationController::create([
