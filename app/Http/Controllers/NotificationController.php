@@ -23,7 +23,7 @@ class NotificationController extends Controller {
 				Notification::where('user_id', $request->user_id)->get(), 200);
 		}
 
-		$notification_item = Redis::brpop(['notification:'.$request->user_id], 240);
+		$notification_item = Redis::brpop(['notification:'.$request->user_id], 28);
 		if(!$notification_item){
 			return response('', 204);
 		}
