@@ -65,15 +65,40 @@ to install `composer v2.2`
 
 Now you can follow the composer [installation instructions](https://getcomposer.org/download/)
 
-### Install `redis`
+### Install `redis` for cache
 
 ```bash
 sudo apt install redis
 ```
 
-### Install `mariadb` or `mysql` database server
+### Install `mysql` or `mariadb` database server
 
-`mariadb` is going to be installed as it is a drop in replacement for `mysql` that is available on most Linux distro's package repository.
+`mysql` is going to be installed as it is the database server was instructed to be used with this project.
+
+**For debian/ubuntu**
+`mysql v8.0` is going to be installed. As of writing this `mysql v8.4-lts` is available but `v8.4` removes the `default_authentication_plugin` config option that would allow `mysql_native_password` plugin to be set instead of ` caching_sha2_password` which is not supported by some clients for authentication, This project\`s version of `php-pdo` used by `laravel v5.0` Eloquent ORM does not support it. If anyone can get it running do create a pull request to update the readme with the instructions to set it up.
+
+```bash
+# use mysql apt config tool to get their PPA setup (Recommended)
+wget "https://dev.mysql.com/get/mysql-apt-config_0.8.34-1_all.deb"
+```
+
+Note on installing the mysql apt config tool, 
+you must seclect `mysql-8.0` and choose the legacy authentication method when prompted (it sutomatically sets the `default_authentication_plugin` to `mysql_native_password`)
+
+```bash
+# install the mysql apt config tool
+sudo dpkg -i mysql-apt-config*.deb
+
+# update package list and install
+sudo apt update && sudo apt install mysql-server -y
+```
+
+**For Arch Linux**
+
+Just use mariadb ⬇️
+
+`mariadb` is a fork of `mysql` that is available on most Linux distro's package repository.
 
 Read the difference between [mariadb and mysql](https://www.geeksforgeeks.org/mysql/difference-between-mysql-and-mariadb/)
 
@@ -91,19 +116,23 @@ sudo systemctl enable --now mariadb.service
 sudo apt install mariadb-server
 ```
 
-**To configure**
+**To configure database (mysql or mariadb)**
 
 ```bash
+# for mysql
+sudo mysql -u root -p
+
+# for mariadb
 sudo mariadb -u root -p
 ```
-then in the mariadb command line
+then in the mysql/mariadb command line
 
 ```sql
 CREATE USER 'budget'@'localhost' IDENTIFIED BY '<YOUR_PASSWORD>';
 CREATE DATABASE budget;
 GRANT ALL PRIVILEGES ON budget.* TO 'budget'@'localhost';
 ```
-exit the mariadb command line with a `\q` command
+exit the mysql/mariadb command line with a `\q` command
 
 ### Install a webserver
 
