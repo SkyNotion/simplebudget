@@ -51,12 +51,8 @@ class TransactionController extends Controller {
 			return Responses::error('Cannot be both a deposit and withdrawal', 400);
 		}
 
-		$account = Fetch::account($request->user_id, $account_id);
-		if($account == null){
-			return Responses::noAccount();
-		}
-
-		$budget = Fetch::budget($account_id);
+		$account = Fetch::accountOrFail($request->user_id, $account_id);
+		$budget = Fetch::budget($request->user_id, $account_id);
 
 		$transaction = new Transaction;
 		$transaction->account_id = $account_id;

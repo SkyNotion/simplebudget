@@ -51,7 +51,7 @@ class AccountController extends Controller {
 	}
 
 	public function create(Request $request)
-	{	
+	{
 		$body = $request->all();
 		$rv = Validator::make($body, ['name' => 'required'],
 			['name.required' => 'Account must have a name']
@@ -77,29 +77,20 @@ class AccountController extends Controller {
 
 	public function show(Request $request, $account_id = null)
 	{
-		$account = Fetch::account($request->user_id, $account_id);
-		if($account == null){
-			return Responses::noAccount();
-		}
+		$account = Fetch::accountOrFail($request->user_id, $account_id);
 		return Responses::json($account);
 	}
 
 	public function update(Request $request, $account_id = null)
 	{
-		$account = Fetch::account($request->user_id, $account_id);
-		if($account == null){
-			return Responses::noAccount();
-		}
+		$account = Fetch::accountOrFail($request->user_id, $account_id);
 		$account->update($request->except("user_id"));
 		return Responses::json($account->fresh());
 	}
 
 	public function destroy(Request $request, $account_id = null)
 	{
-		$account = Fetch::account($request->user_id, $account_id);
-		if($account == null){
-			return Responses::noAccount();
-		}
+		$account = Fetch::accountOrFail($request->user_id, $account_id);
 		if($account->delete()){
 			return Responses::success();
 		}

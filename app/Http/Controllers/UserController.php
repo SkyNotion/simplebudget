@@ -47,7 +47,7 @@ class UserController extends Controller {
 			if(ApiKey::where('user_id', $request->user_id)
 					 ->where(function($query){
 					 	$query->where('api_key', $api_key)
-					 		  ->where('name', $api_key);
+					 		  ->orWhere('name', $api_key);
 					 })->delete()){
 				return Responses::message('Revoked', 200);
 			}

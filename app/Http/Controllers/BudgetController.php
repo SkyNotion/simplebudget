@@ -14,26 +14,12 @@ class BudgetController extends Controller {
 
 	public function index(Request $request, $account_id = null)
 	{
-		$account = Fetch::account($request->user_id, $account_id);
-		if($account == null){
-			return Responses::noAccount();
-		}
-
-		$budget = Fetch::budget($account_id);
-		if($budget == null){
-			return Responses::noBudget();
-		}
-
-		return Responses::json($budget);
+		return Responses::json(Fetch::budgetOrFail($request->user_id, $account_id));
 	}
 
 	public function create(Request $request, $account_id = null)
 	{
-		$account = Fetch::account($request->user_id, $account_id);
-		if($account == null){
-			return Responses::noAccount();
-		}
-
+		$account = Fetch::accountOrFail($request->user_id, $account_id);
 		$body = $request->all();
 		if(!sizeof($body)){
 			Responses::noRequestBody();
@@ -56,16 +42,7 @@ class BudgetController extends Controller {
 
 	public function destroy(Request $request, $account_id = null)
 	{
-		$account = Fetch::account($request->user_id, $account_id);
-		if($account == null){
-			return Responses::noAccount();
-		}
-
-		$budget = Fetch::budget($account_id);
-		if($budget == null){
-			return Responses::noBudget();
-		}
-
+		$budget = Fetch::budgetOrFail($request->user_id, $account_id);
 		if($budget->delete()){
 			return Responses::success();
 		}
