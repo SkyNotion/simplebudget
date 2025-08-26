@@ -60,11 +60,19 @@ class UserController extends Controller {
 			return Responses::apiKeyExists();
 		}
 
-		return Responses::json(ApiKey::create([
+		$api_key = Uuid::uuid4();
+		$key = ApiKey::create([
 			'user_id' => $request->user_id,
 			'name' => $request->input('name'),
-			'api_key' => Uuid::uuid4()
-		])->fresh(), 201);
+			'api_key' => Hash::make($api_key)
+		])->fresh();
+
+		return Responses::json([
+			'user_id' => $request->user_id,
+			'name' => $key->name,
+			'api_key' => str_replace('=', '', base64_encode($request->user_id.':'.$key->key_id.'.'.$api_key)),
+			'created_at' => $key->created_at->toDateTimeString()
+		], 201);
 	}
 
 }

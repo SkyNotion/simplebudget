@@ -37,6 +37,7 @@ CREATE TABLE IF NOT EXISTS users (
 
 -- create a table to store api keys
 CREATE TABLE IF NOT EXISTS api_keys (
+	key_id BIGSERIAL PRIMARY KEY,
 	user_id BIGINT NOT NULL REFERENCES users(user_id) ON DELETE CASCADE,
 	name VARCHAR(255),
 	api_key VARCHAR(255) NOT NULL,
