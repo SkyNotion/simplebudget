@@ -37,8 +37,8 @@ class AccountController extends Controller {
 
 	public function index(Request $request)
 	{
-		$accounts = Account::where('user_id', $request->user_id)->
-						whereNull('parent_id')->get()->toArray();
+		$accounts = Account::where('user_id', $request->user_id)
+						   ->whereNull('parent_id')->get()->toArray();
 		if(!sizeof($accounts)){
 			return response('No accounts found', 204);
 		}
@@ -108,9 +108,8 @@ class AccountController extends Controller {
 	public function update(Request $request, $account_id = null)
 	{
 		$account = $this->get_account($request->user_id, $account_id);
-		$account->update($request->all());
-		$account->fresh();
-		return response()->json($account, 200);
+		$account->update($request->except("user_id"));
+		return response()->json($account->fresh(), 200);
 	}
 
 	public function destroy(Request $request, $account_id = null)
