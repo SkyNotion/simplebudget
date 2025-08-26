@@ -6,7 +6,6 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use Validator;
-use DB;
 
 use App\Transaction;
 use App\Account;
@@ -18,14 +17,15 @@ class TransactionController extends Controller {
 
 	public function index(Request $request, $account_id = null)
 	{
-		$transactions = DB::table('transactions')
-				->join('accounts', 'transactions.account_id', '=', 'accounts.account_id')
+		$transactions = Transaction::join('accounts', 'transactions.account_id', '=', 'accounts.account_id')
 				->where('accounts.user_id', $request->user_id)
 				->where('transactions.account_id', $account_id);
 		if($request->has('search')){
-			$transactions = $transactions
-				->whereRaw('transactions.description like ? or transactions.deposit like ? or transactions.withdrawal like ? or transactions.balance like ?', 
-				array_fill(0, 4, '%'.(string)$request->input('search').'%'));
+			$search_query = '%'.(string)$request->input('search').'%';
+			$transactions = $transactions->where('transactions.description', 'like', $search_query)
+				->orWhere('transactions.deposit', 'like', $search_query)
+				->orWhere('transactions.withdrawal', 'like', $search_query)
+				->orWhere('transactions.balance', 'like', $search_query);
 		}elseif($request->has('date_range')){
 			$transactions = $transactions
 				->whereBetween('transactions.created_at', explode(";", $request->input('date_range')));
@@ -33,8 +33,8 @@ class TransactionController extends Controller {
 		$transactions = $transactions->select(
 					'transactions.transaction_id', 'transactions.description',
 					'transactions.deposit', 'transactions.withdrawal','transactions.balance',
-					'transactions.created_at', 'transactions.updated_at'
-				)->get();
+					'transactions.created_at', 'transactions.updated_at')
+					->get();
 		if(!sizeof($transactions)){
 			return response()->json(['message' => 'No transactions found'], 204);
 		}
@@ -48,8 +48,9 @@ class TransactionController extends Controller {
 			return response()->json(['error' => 'Cannot be both a deposit and withdrawal'], 400);
 		}
 
-		$account = Account::whereRaw('user_id = ? and account_id = ?',
-					[$request->user_id, $account_id])->first();
+		$account = Account::where('user_id', $request->user_id)
+						  ->where('account_id', $account_id)
+						  ->first();
 		if(!sizeof($account)){
 			return response()->json(['error' => 'Account does not exist'], 404);
 		}
@@ -82,14 +83,14 @@ class TransactionController extends Controller {
 
 		if(sizeof($budget)){
 			$message = null;
-			$total_deposits = Transaction::whereRaw("account_id = ? AND created_at >= ?", 
-							[$account_id, $budget->updated_at->toDateTimeString()])
-							->whereNotNull("deposit")
-							->sum("deposit");
-			$total_withdrawal = Transaction::whereRaw("account_id = ? AND created_at >= ?", 
-							[$account_id, $budget->updated_at->toDateTimeString()])
-							->whereNotNull("withdrawal")
-							->sum("withdrawal");
+			$total_deposits = Transaction::where('account_id', $account_id)
+			 							 ->where('created_at', '>=', $budget->updated_at->toDateTimeString())
+										 ->whereNotNull("deposit")
+										 ->sum("deposit");
+			$total_withdrawal = Transaction::where('account_id', $account_id)
+			 							   ->where('created_at', '>=', $budget->updated_at->toDateTimeString())
+										   ->whereNotNull("withdrawal")
+										   ->sum("withdrawal");
 			$budget_balance = $total_withdrawal - $total_deposits;
 			$percentage = ($budget_balance/$budget->budget_limit)*100;
 			if($percentage > 70 && $percentage <= 100){
@@ -121,8 +122,7 @@ class TransactionController extends Controller {
 
 	public function destroy(Request $request, $account_id = null, $transaction_id = null)
 	{
-		if(!DB::table('transactions')
-				->join('accounts', 'transactions.account_id', '=', 'accounts.account_id')
+		if(!Transaction::join('accounts', 'transactions.account_id', '=', 'accounts.account_id')
 				->where('accounts.user_id', $request->user_id)
 				->where('transactions.account_id', $account_id)
 				->where('transactions.transaction_id', $transaction_id)->delete()){

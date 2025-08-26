@@ -44,15 +44,19 @@ class UserController extends Controller {
 
 	public function api_key(Request $request, $api_key = null){
 		if($api_key){
-			if(ApiKey::whereRaw('user_id = ? and (api_key = ? or name = ?)',
-				[$request->user_id, $api_key, $api_key])->delete()){
+			if(ApiKey::where('user_id', $request->user_id)
+					 ->where(function($query){
+					 	$query->where('api_key', $api_key)
+					 		  ->where('name', $api_key);
+					 })->delete()){
 				return response('Revoked', 200);
 			}
 			return response()->json(['error' => 'Api key or name does not exist'], 400);
 		}
 
-		if(sizeof(ApiKey::whereRaw('user_id = ? and name = ?', 
-			[$request->user_id, $request->input('name')])->first())){
+		if(sizeof(ApiKey::where('user_id', $request->user_id)
+						->where('name', $request->input('name'))
+						->first())){
 			return response()->json(['error' => 'An api key with that name exists'], 400);
 		}
 

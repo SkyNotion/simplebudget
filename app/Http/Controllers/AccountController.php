@@ -13,8 +13,9 @@ use App\Exceptions\PlainHttpException;
 class AccountController extends Controller {
 
 	public function get_account($user_id, $account_id, $message = 'Account does not exist'){
-		$account = Account::whereRaw('user_id = ? and account_id = ?', 
-			[$user_id, $account_id])->first();
+		$account = Account::where('user_id', $user_id)
+						  ->where('account_id', $account_id)
+						  ->first();
 		if(!sizeof($account)){
 			throw new PlainHttpException($message, 404);
 		}
@@ -22,8 +23,9 @@ class AccountController extends Controller {
 	}
 
 	public function get_children($user_id, $parent_id){
-		$accounts = Account::whereRaw('user_id = ? and parent_id = ?', 
-			[$user_id, $parent_id])->get()->toArray();
+		$accounts = Account::where('user_id', $user_id)
+						   ->where('parent_id', $parent_id)
+						   ->get()->toArray();
 		if(!sizeof($accounts)){
 			return array();
 		}
@@ -47,8 +49,9 @@ class AccountController extends Controller {
 	}
 
 	public function childaccounts(Request $request, $account_id = null){
-		$accounts = Account::whereRaw('user_id = ? and parent_id = ?', 
-			[$request->user_id, $account_id])->get()->toArray();
+		$accounts = Account::where('user_id', $request->user_id)
+						   ->where('parent_id', $account_id)
+						   ->get()->toArray();
 		if(!sizeof($accounts)){
 			throw new PlainHttpException($message, 404);
 		}

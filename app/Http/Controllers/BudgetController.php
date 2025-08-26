@@ -12,8 +12,9 @@ class BudgetController extends Controller {
 
 	public function index(Request $request, $account_id = null)
 	{
-		$account = Account::whereRaw('user_id = ? and account_id = ?',
-					[$request->user_id, $account_id])->first();
+		$account = Account::where('user_id', $request->user_id)
+						  ->where('account_id', $account_id)
+						  ->first();
 		if(!sizeof($account)){
 			return response()->json(['error' => 'Account does not exist'], 404);
 		}
@@ -27,8 +28,9 @@ class BudgetController extends Controller {
 
 	public function create(Request $request, $account_id = null)
 	{
-		$account = Account::whereRaw('user_id = ? and account_id = ?',
-					[$request->user_id, $account_id])->first();
+		$account = Account::where('user_id', $request->user_id)
+						  ->where('account_id', $account_id)
+						  ->first();
 		if(!sizeof($account)){
 			return response()->json(['error' => 'Account does not exist'], 404);
 		}
@@ -61,8 +63,9 @@ class BudgetController extends Controller {
 
 	public function destroy(Request $request, $account_id = null)
 	{
-		$account = Account::whereRaw('user_id = ? and account_id = ?',
-					[$request->user_id, $account_id])->first();
+		$account = Account::where('user_id', $request->user_id)
+						  ->where('account_id', $account_id)
+						  ->first();
 		if(!sizeof($account)){
 			return response()->json(['error' => 'Account does not exist'], 404);
 		}
