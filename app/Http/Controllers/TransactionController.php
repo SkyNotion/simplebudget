@@ -13,6 +13,8 @@ use App\Budget;
 
 use App\Http\Controllers\NotificationController;
 
+use App\Custom\Responses;
+
 class TransactionController extends Controller {
 
 	public function index(Request $request, $account_id = null)
@@ -36,9 +38,9 @@ class TransactionController extends Controller {
 					'transactions.created_at', 'transactions.updated_at')
 					->get();
 		if(!sizeof($transactions)){
-			return response()->json(['message' => 'No transactions found'], 204);
+			return Responses::message('No transactions found', 204);
 		}
-		return response()->json($transactions, 200);
+		return Responses::json($transactions, 200);
 	}
 
 	public function create(Request $request, $account_id = null)
@@ -79,7 +81,7 @@ class TransactionController extends Controller {
 		}
 
 		$transaction->save();
-		$transaction = $transaction->fresh()->toArray();
+		$transaction->fresh();
 
 		if(sizeof($budget)){
 			$message = null;
@@ -112,12 +114,12 @@ class TransactionController extends Controller {
 			NotificationController::create([
 				'user_id' => $request->user_id,
 				'source' => 'transaction',
-				'source_id' => $transaction['transaction_id'],
-				'content' => json_encode($transaction)
+				'source_id' => $transaction->transaction_id,
+				'content' => json_encode($transaction->toArray())
 			]);
 		}
 
-		return response()->json($transaction, 200);
+		return Responses::json($transaction);
 	}
 
 	public function destroy(Request $request, $account_id = null, $transaction_id = null)
@@ -126,9 +128,9 @@ class TransactionController extends Controller {
 				->where('accounts.user_id', $request->user_id)
 				->where('transactions.account_id', $account_id)
 				->where('transactions.transaction_id', $transaction_id)->delete()){
-			return response()->json(['error' => 'Account or transaction does not exist'], 404);
+			return Responses::noTransaction();
 		}
-		return response()->json(['message' => 'Successful'], 200);
+		return Responses::success();
 	}
 
 }

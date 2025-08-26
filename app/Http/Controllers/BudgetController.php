@@ -6,71 +6,69 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use App\Budget;
-use App\Account;
+
+use App\Custom\Fetch;
+use App\Custom\Responses;
 
 class BudgetController extends Controller {
 
 	public function index(Request $request, $account_id = null)
 	{
-		$account = Account::where('user_id', $request->user_id)
-						  ->where('account_id', $account_id)
-						  ->first();
-		if(!sizeof($account)){
-			return response()->json(['error' => 'Account does not exist'], 404);
+		$account = Fetch::account($request->user_id, $account_id);
+		if($account == null){
+			return Responses::noAccount();
 		}
-		$budget = Budget::where('account_id', $account_id)->first();
 
+		$budget = Fetch::budget($account_id);
 		if($budget == null){
-			return response()->json([], 200);
+			return Responses::noBudget();
 		}
-		return response()->json($budget->toArray(), 200);
+
+		return Responses::json($budget);
 	}
 
 	public function create(Request $request, $account_id = null)
 	{
-		$account = Account::where('user_id', $request->user_id)
-						  ->where('account_id', $account_id)
-						  ->first();
-		if(!sizeof($account)){
-			return response()->json(['error' => 'Account does not exist'], 404);
+		$account = Fetch::account($request->user_id, $account_id);
+		if($account == null){
+			return Responses::noAccount();
 		}
 
 		$body = $request->all();
 		if(!sizeof($body)){
-			return response()->json(['error' => 'Request body cannot be empty'], 400);
+			Responses::noRequestBody();
 		}
 
-		$budget = Budget::firstOrNew(['account_id' => $account_id]);
-
-		if(isset($body['name'])){
-			$budget->name = $body['name'];
-		}
-		if(isset($body['description'])){
-			$budget->description = $body['description'];
-		}
+		$body['account_id'] = $account_id;
 		if(isset($body['entities'])){
 			$budget_limit = 0.0;
 			for($i = 0;$i < sizeof($body['entities']);$i++){
 				$budget_limit += $body['entities'][$i]['amount'];
 			}
-			$budget->entities = json_encode($body['entities']);
-			$budget->budget_limit = $budget_limit;
-		}	
-		$budget->save();
+			$body['entities'] = json_encode($body['entities']);
+			$body['budget_limit'] = $budget_limit;
+		}
+
+		$budget = Budget::firstOrNew($body);
 		$budget->touch();
-		return response()->json($budget->fresh()->toArray(), 201);
+		return Responses::json($budget->fresh(), 201);
 	}
 
 	public function destroy(Request $request, $account_id = null)
 	{
-		$account = Account::where('user_id', $request->user_id)
-						  ->where('account_id', $account_id)
-						  ->first();
-		if(!sizeof($account)){
-			return response()->json(['error' => 'Account does not exist'], 404);
+		$account = Fetch::account($request->user_id, $account_id);
+		if($account == null){
+			return Responses::noAccount();
 		}
-		Budget::where('account_id', $account_id)->delete();
-		return response()->json(['message' => 'Successful'], 200);
+
+		$budget = Fetch::budget($account_id);
+		if($budget == null){
+			return Responses::noBudget();
+		}
+
+		if($budget->delete()){
+			return Responses::success();
+		}
 	}
 
 }

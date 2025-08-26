@@ -12,6 +12,7 @@ use App\User;
 use App\ApiKey;
 
 use App\Custom\Uuid;
+use App\Custom\Responses;
 
 class UserController extends Controller {
 
@@ -34,12 +35,11 @@ class UserController extends Controller {
 		);
 
 		if($rv->fails()){
-			return response()->json(['error' => $rv->errors()->first()], 400);
+			return Responses::noRequestBody($rv->errors()->first());
 		}
 
 		$params['password'] = Hash::make($params['password']);
-
-	    return response()->json(User::create($params)->attributesToArray(), 201);
+	    return Responses::json(User::create($params)->fresh(), 201);
 	}
 
 	public function api_key(Request $request, $api_key = null){
@@ -49,22 +49,22 @@ class UserController extends Controller {
 					 	$query->where('api_key', $api_key)
 					 		  ->where('name', $api_key);
 					 })->delete()){
-				return response('Revoked', 200);
+				return Responses::message('Revoked', 200);
 			}
-			return response()->json(['error' => 'Api key or name does not exist'], 400);
+			return Responses::apiKeyExists();
 		}
 
 		if(sizeof(ApiKey::where('user_id', $request->user_id)
 						->where('name', $request->input('name'))
 						->first())){
-			return response()->json(['error' => 'An api key with that name exists'], 400);
+			return Responses::apiKeyExists();
 		}
 
-		return response()->json(ApiKey::create([
+		return Responses::json(ApiKey::create([
 			'user_id' => $request->user_id,
 			'name' => $request->input('name'),
 			'api_key' => Uuid::uuid4()
-		])->attributesToArray(), 201);
+		])->fresh(), 201);
 	}
 
 }
