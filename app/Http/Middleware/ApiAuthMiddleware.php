@@ -5,6 +5,8 @@ use Cache;
 
 use App\ApiKey;
 
+use App\Custom\Responses;
+
 class ApiAuthMiddleware {
 
 	/**
@@ -15,21 +17,20 @@ class ApiAuthMiddleware {
 	 * @return mixed
 	 */
 	public function handle($request, Closure $next)
-	{	
-		$unauthorized = response()->json(['error' => 'Unauthorized, api key is missing or invalid'], 401);
+	{
 		$api_key = $request->header('api-key');
 		if($api_key){
 			if(!Cache::has($api_key)){
 				$apk = ApiKey::where('api_key', '=', $api_key)->first();
 				if(!sizeof($apk)){
-					return $unauthorized;
+					return Responses::apiAuthUnauthorized();
 				}
 				Cache::put($api_key, $apk->user_id, 120);
 			}
 			$request->user_id = Cache::get($api_key);
 			return $next($request);
 		}
-		return $unauthorized;
+		return Responses::apiAuthUnauthorized();
 	}
 
 }

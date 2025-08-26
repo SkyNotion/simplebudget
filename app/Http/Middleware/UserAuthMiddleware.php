@@ -6,6 +6,8 @@ use Hash;
 
 use App\User;
 
+use App\Custom\Responses;
+
 class UserAuthMiddleware {
 
 	public $validation_messages = [
@@ -31,20 +33,17 @@ class UserAuthMiddleware {
 		);
 
 		if($rv->fails()){
-			return response()->json(['error' => $rv->errors()->first()], 400);
+			return Responses::error($rv->errors()->first(), 400);
 		}
-
-		$unauthorized = response()->json(
-		['error' => 'Unauthorized, invalid email or password'], 401);
 
 		$user = User::where('email', '=', $params['email'])->first();
 
 		if(sizeof($user)){
 			if(!Hash::check($params['password'], $user['password'])){
-				return $unauthorized;
+				return Responses::basicAuthUnauthorized();
 			}
 		}else{
-			return $unauthorized;
+			return Responses::basicAuthUnauthorized();
 		}
 
 		$request->user_id = $user['user_id'];

@@ -13,6 +13,7 @@ use App\Budget;
 
 use App\Http\Controllers\NotificationController;
 
+use App\Custom\Fetch;
 use App\Custom\Responses;
 
 class TransactionController extends Controller {
@@ -47,17 +48,15 @@ class TransactionController extends Controller {
 	{
 		$body = $request->all();
 		if(!(isset($body['deposit']) ^ isset($body['withdrawal']))){
-			return response()->json(['error' => 'Cannot be both a deposit and withdrawal'], 400);
+			return Responses::error('Cannot be both a deposit and withdrawal', 400);
 		}
 
-		$account = Account::where('user_id', $request->user_id)
-						  ->where('account_id', $account_id)
-						  ->first();
-		if(!sizeof($account)){
-			return response()->json(['error' => 'Account does not exist'], 404);
+		$account = Fetch::account($request->user_id, $account_id);
+		if($account == null){
+			return Responses::noAccount();
 		}
 
-		$budget = Budget::where('account_id', '=', $account_id)->first();
+		$budget = Fetch::budget($account_id);
 
 		$transaction = new Transaction;
 		$transaction->account_id = $account_id;

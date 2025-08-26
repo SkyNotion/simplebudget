@@ -47,6 +47,14 @@ class Responses{
 	}
 
 	public static function apiKeyExists(){
-		return Responses::error('Api key or name does not exist', 400);
+		return self::error('Api key or name does not exist', 400);
+	}
+
+	public static function basicAuthUnauthorized(){
+		return self::error('Unauthorized, invalid email or password', 401);
+	}
+
+	public static function apiAuthUnauthorized(){
+		return self::error('Unauthorized, api key is missing or invalid', 401);
 	}
 }
