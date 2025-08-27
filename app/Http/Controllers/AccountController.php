@@ -14,40 +14,18 @@ use App\Custom\Responses;
 
 class AccountController extends Controller {
 
-	public function get_children($user_id, $parent_id)
-	{
-		$accounts = Fetch::accountsWithParent($user_id, $parent_id);
-		if(!sizeof($accounts)){
-			return array();
-		}
-		foreach($accounts as &$account){
-			$account['children'] = $this->get_children($user_id, $account['account_id']);
-		}
-		return $accounts;
-	}
-
 	public function childaccounts(Request $request, $account_id = null)
 	{
 		$accounts = Fetch::accountsWithParent($request->user_id, $account_id);
 		if(!sizeof($accounts)){
 			return Responses::noChildAccounts();
 		}
-		foreach($accounts as &$account){
-			$account['children'] = $this->get_children($request->user_id, $account['account_id']);
-		}
 		return Responses::json($accounts, 200);
 	}
 
 	public function index(Request $request)
 	{
-		$accounts = Fetch::accountsWithParent($request->user_id, null);
-		if(!sizeof($accounts)){
-			return Responses::noChildAccounts();
-		}
-		foreach($accounts as &$account){
-			$account['children'] = $this->get_children($request->user_id, $account['account_id']);
-		}
-		return Responses::json($accounts, 200);
+		return $this->childaccounts($request, null);
 	}
 
 	public function create(Request $request)
@@ -83,6 +61,11 @@ class AccountController extends Controller {
 
 	public function update(Request $request, $account_id = null)
 	{
+		if($request->has('parent_id')){
+			if(Fetch::account($request->user_id, $request->input('parent_id')) == null){
+				return Responses::noParent();
+			}
+		}
 		$account = Fetch::accountOrFail($request->user_id, $account_id);
 		$account->update($request->except("user_id"));
 		return Responses::json($account->fresh());
