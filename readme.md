@@ -196,6 +196,10 @@ install dependencies
 ```bash
 php56 $(which composer) install
 ```
+create database tables
+```bash
+php56 artisan migrate
+```
 make it visible to the webserver
 ```bash
 # move the folder to the server root in specified in our nginx configuration
@@ -211,7 +215,25 @@ sudo nginx -t
 sudo systemctl restart nginx.service
 ```
 
+## Install script for debian/ubuntu
+
+To get the server up and running on `debian\ubuntu` you can just use the install script
+
+```bash
+# making sure the repo is cloned
+git clone https://github.com/Mesh-Sys/simplebudget_server.git
+
+cd simplebudget_server
+
+# give the script executable permissions
+chmod +x install.sh
+
+# install simplebudget_server
+sudo ./install.sh "<YOUR_DATABASE_USER_PASSWORD>"
+```
+
 ## Check if the server is active
 
 in your browser paste this link http://localhost/budget/docs and press enter, The API 
 documentation should come up
+
