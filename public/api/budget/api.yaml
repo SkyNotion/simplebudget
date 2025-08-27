@@ -54,10 +54,10 @@ components:
           example: Joseph's savings allowance
         created_at:
           type: string
-          example: 2025-08-07
+          example: 2025-08-26 15:31:42
         updated_at:
           type: string
-          example: 2025-08-08
+          example: 2025-08-26 15:31:42
     TransactionResponse:
       type: object
       properties:
@@ -82,10 +82,10 @@ components:
           example: 500000 
         created_at:
           type: string
-          example: 2025-08-10
+          example: 2025-08-26 15:31:42
         updated_at:
           type: string
-          example: 2025-08-10
+          example: 2025-08-26 15:31:42
 paths:
   /user:
     post:
@@ -180,12 +180,12 @@ paths:
                   name:
                     type: string
                     example: main
-                  key:
+                  api_key:
                     type: string
-                    example: e04d3a4e40b743f0bf6b68f18e829d97
+                    example: MjoyNS5jYmEwZDAzYTYzMWE0MzJkYTQ1NGFkNTZjOTNmYzNiZg
                   created_at:
                     type: string
-                    example: 2025-07-05
+                    example: 2025-08-26 15:31:42
         '400':
           description: Invalid request | Name of api key exists, use another
         '401':
@@ -201,7 +201,7 @@ paths:
           required: true
           schema:
             type: string
-          example: e04d3a4e40b743f0bf6b68f18e829d97
+          example: MjoyNS5jYmEwZDAzYTYzMWE0MzJkYTQ1NGFkNTZjOTNmYzNiZg
         - in: query
           name: email
           description: The email address of the new account
@@ -460,6 +460,13 @@ paths:
             format: int64
           example: 23909394
         - in: query
+          name: offset
+          description: Specifies the start point for fecthing the transactions (defaults to 0 if not specified)
+          schema:
+            type: integer
+            format: int64
+          example: 20
+        - in: query
           name: search
           description: Fetch a list of transactions that belongs to a particular search query
           schema:
@@ -470,7 +477,7 @@ paths:
           description: "Fetch a list of transactions from a particular date range"
           schema:
             type: string
-          example: "2025-08-01;2025-08-07"
+          example: "2025-06-26 08:23:11;2025-08-26 15:31:42"
       responses:
         '200':
           description: Successful
@@ -593,6 +600,16 @@ paths:
                   description:
                     type: string
                     example: Budget when using Example Bank
+                  budget_limit:
+                    type: integer
+                    format: int64
+                    example: 77777777
+                  created_at:
+                    type: string
+                    example: 2025-08-26 15:31:42
+                  updated_at:
+                    type: string
+                    example: 2025-08-26 15:31:42
                   entities:
                     type: array
                     items:
@@ -612,7 +629,7 @@ paths:
         '401':
           $ref: "#/components/responses/statusUnauthorized"
         '404':
-          description: Account does not exist
+          description: Account or Budget does not exist
     put:
       security:
         - apiKey: []
@@ -661,15 +678,50 @@ paths:
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/TransactionResponse"
+                type: object
+                properties:
+                  budget_id:
+                    type: integer
+                    format: int64
+                    example: 1
+                  name:
+                    type: string
+                    example: Monthly budget
+                  description:
+                    type: string
+                    example: Budget when using Example Bank
+                  budget_limit:
+                    type: integer
+                    format: int64
+                    example: 77777777
+                  created_at:
+                    type: string
+                    example: 2025-08-26 15:31:42
+                  updated_at:
+                    type: string
+                    example: 2025-08-26 15:31:42
+                  entities:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        description:
+                          type: string
+                        amount:
+                          type: number
+                    example:
+                      - description: For rent
+                        amount: 700000
+                      - description: For food
+                        amount: 550000
+                      - description: For investments
+                        amount: 90000000
         '400':
           description: Invalid request
         '401':
           $ref: "#/components/responses/statusUnauthorized"
         '404':
-          description: Account does not exist
+          description: Account or Budget does not exist
     delete:
       security:
         - apiKey: []
@@ -690,7 +742,7 @@ paths:
         '401':
           $ref: "#/components/responses/statusUnauthorized"
         '404':
-          description: Account does not exist
+          description: Account or Budget does not exist
   /notifications:
     get:
       security:
@@ -733,9 +785,9 @@ paths:
                     content:
                       type: string
                       example: You have passed your budget
-                    date:
+                    created_at:
                       type: string
-                      example: 2025-08-06
+                      example: 2025-08-26 15:31:42
         '204':
           description: No new notifications
         '400':
