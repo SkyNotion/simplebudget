@@ -58,6 +58,12 @@ class ApiAuthMiddleware {
 			if(!Hash::check($api_key[1], $key)){
 				return Responses::apiAuthUnauthorized();
 			}
+			// Also validate account_id if present
+			if(!is_null($request->route('account_id'))){
+				if(!is_numeric($request->route('account_id'))){
+					return Responses::invalidAccountId();
+				}
+			}
 			$request->user_id = $user_id;
 			return $next($request);
 		}

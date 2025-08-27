@@ -61,4 +61,8 @@ class Responses{
 	public static function invalidRequest(){
 		return self::error('Invalid request', 400);
 	}
+
+	public static function invalidAccountId(){
+		return self::error('Invalid account id', 400);
+	}
 }
