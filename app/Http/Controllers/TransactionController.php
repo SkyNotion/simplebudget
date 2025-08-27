@@ -20,6 +20,7 @@ class TransactionController extends Controller {
 
 	public function index(Request $request, $account_id = null)
 	{
+		$offset = $request->input('offset', 0);
 		$transactions = Transaction::join('accounts', 'transactions.account_id', '=', 'accounts.account_id')
 				->where('accounts.user_id', $request->user_id)
 				->where('transactions.account_id', $account_id);
@@ -37,7 +38,7 @@ class TransactionController extends Controller {
 					'transactions.transaction_id', 'transactions.description',
 					'transactions.deposit', 'transactions.withdrawal','transactions.balance',
 					'transactions.created_at', 'transactions.updated_at')
-					->get();
+					->skip($offset)->take(20)->get();
 		if(!sizeof($transactions)){
 			return Responses::message('No transactions found', 204);
 		}
