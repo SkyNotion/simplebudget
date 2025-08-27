@@ -39,11 +39,7 @@ class AccountController extends Controller {
 			return Responses::error($rv->errors()->first(), 400);
 		}
 
-		if(isset($body['parent_id'])){
-			if(Fetch::account($request->user_id, $body['parent_id']) == null){
-				return Responses::noParent();
-			}
-		}
+		Fetch::parentOrFail($request->user_id, $body['parent_id']);
 
 		$body['user_id'] = $request->user_id;
 		if(isset($body['opening_balance'])){
@@ -60,11 +56,9 @@ class AccountController extends Controller {
 	}
 
 	public function update(Request $request, $account_id = null)
-	{
+	{	
 		if($request->has('parent_id')){
-			if(Fetch::account($request->user_id, $request->input('parent_id')) == null){
-				return Responses::noParent();
-			}
+			Fetch::parentOrFail($request->user_id, $request->input('parent_id'));
 		}
 		$account = Fetch::accountOrFail($request->user_id, $account_id);
 		$account->update($request->except("user_id"));

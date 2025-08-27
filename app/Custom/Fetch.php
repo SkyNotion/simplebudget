@@ -26,6 +26,14 @@ class Fetch{
 					  ->get();
 	}
 
+	public static function parentOrFail($user_id, $parent_id){
+		$parent = self::account($user_id, $parent_id);
+		if($parent == null){
+			throw new PlainHttpException('Parent account does not exists', 404);
+		}
+		return $parent;
+	}
+
 	public static function budget($user_id, $account_id){
 		return Budget::join('accounts', 'budgets.account_id', '=', 'accounts.account_id')
 					 ->where('accounts.user_id', $user_id)
