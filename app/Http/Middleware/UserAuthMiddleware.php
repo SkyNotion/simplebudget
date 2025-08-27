@@ -38,7 +38,7 @@ class UserAuthMiddleware {
 
 		$user = User::where('email', '=', $params['email'])->first();
 
-		if(sizeof($user)){
+		if(!is_null($user)){
 			if(!Hash::check($params['password'], $user['password'])){
 				return Responses::basicAuthUnauthorized();
 			}

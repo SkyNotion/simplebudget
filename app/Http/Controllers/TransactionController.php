@@ -95,7 +95,7 @@ class TransactionController extends Controller {
 			}elseif ($percentage > 100) {
 				$message = "You have passed your budget by ".(string)($budget_balance-$budget->budget_limit).$account->currency;
 			}
-			if($message != null){
+			if(!is_null($message)){
 				NotificationController::create([
 					'user_id' => $request->user_id,
 					'source' => 'budget',

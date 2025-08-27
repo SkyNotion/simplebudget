@@ -47,7 +47,7 @@ class ApiAuthMiddleware {
 				$key = ApiKey::where('user_id', $user_id)
 							 ->where('key_id', $key_id)
 							 ->first();
-				if($key == null){
+				if(is_null($key)){
 					return Responses::apiAuthUnauthorized();
 				}
 				Cache::put($api_key[0], $key->api_key, 60);

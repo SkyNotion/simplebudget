@@ -14,7 +14,7 @@ class Fetch{
 
 	public static function accountOrFail($user_id, $account_id){
 		$account = self::account($user_id, $account_id);
-		if($account == null){
+		if(is_null($account)){
 			throw new PlainHttpException('Account does not exist', 404);
 		}
 		return $account;
@@ -28,7 +28,7 @@ class Fetch{
 
 	public static function parentOrFail($user_id, $parent_id){
 		$parent = self::account($user_id, $parent_id);
-		if($parent == null){
+		if(is_null($parent)){
 			throw new PlainHttpException('Parent account does not exists', 404);
 		}
 		return $parent;
@@ -46,7 +46,7 @@ class Fetch{
 
 	public static function budgetOrFail($user_id, $account_id){
 		$budget = self::budget($user_id, $account_id);
-		if($budget == null){
+		if(is_null($budget)){
 			throw new PlainHttpException('Account or Budget does not exist', 404);
 		}
 		return $budget;

@@ -49,7 +49,7 @@ class UserController extends Controller {
 			$key = ApiKey::where('user_id', $request->user_id)
 					 	 ->where('name', $api_key)
 					 	 ->first();
-			if($key != null){
+			if(!is_null($key)){
 				if(Cache::has($request->user_id.':'.$key->key_id)){
 					Cache::delete($request->user_id.':'.$key->key_id);
 				}
@@ -74,7 +74,7 @@ class UserController extends Controller {
 			$key = ApiKey::where('user_id', $ids[0])
 					 	 ->where('key_id', $ids[1])
 					 	 ->first();
-			if($key == null){
+			if(is_null($key)){
 				return Responses::invalidRequest();
 			}
 
