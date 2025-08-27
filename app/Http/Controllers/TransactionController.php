@@ -6,6 +6,7 @@ use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
 
 use Validator;
+use DB;
 
 use App\Transaction;
 use App\Account;
@@ -81,20 +82,17 @@ class TransactionController extends Controller {
 
 		if(sizeof($budget)){
 			$message = null;
-			$total_deposits = Transaction::where('account_id', $account_id)
-			 							 ->where('created_at', '>=', $budget->updated_at->toDateTimeString())
-										 ->whereNotNull("deposit")
-										 ->sum("deposit");
-			$total_withdrawal = Transaction::where('account_id', $account_id)
-			 							   ->where('created_at', '>=', $budget->updated_at->toDateTimeString())
-										   ->whereNotNull("withdrawal")
-										   ->sum("withdrawal");
-			$budget_balance = $total_withdrawal - $total_deposits;
-			$percentage = ($budget_balance/$budget->budget_limit)*100;
+			$balance = Transaction::where('account_id', $account_id)
+								   ->where('created_at', '>=', $budget->updated_at->toDateTimeString())
+								   ->whereNotNull('deposit')
+								   ->orWhereNotNull('withdrawal')
+								   ->select(DB::raw('(sum(withdrawal) - sum(deposit)) as budget_balance'))
+								   ->first();
+			$percentage = ($balance->budget_balance/$budget->budget_limit)*100;
 			if($percentage > 70 && $percentage <= 100){
 				$message = "You have used $percentage% of your budget";
 			}elseif ($percentage > 100) {
-				$message = "You have passed your budget by ".(string)($budget_balance-$budget->budget_limit).$account->currency;
+				$message = "You have passed your budget by ".(string)($balance->budget_balance-$budget->budget_limit).$account->currency;
 			}
 			if(!is_null($message)){
 				NotificationController::create([
