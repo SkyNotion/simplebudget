@@ -5,7 +5,7 @@ if [ $(id -u) -ne 0 ]; then
 	exit
 fi
 
-if [ ! $(command -v apt > /dev/null) ]; then
+if [ ! $(command -v apt) > /dev/null ]; then
 	echo "APT package manager not found!, This script works only on debian/ubuntu"
 	exit
 fi
@@ -17,28 +17,29 @@ fi
 
 apt update -y
 
+echo "Adding PPA for php5.6"
 DISTRO=$(cat /etc/os-release | egrep -o '^ID=([a-zA-Z0-9]+)' | cut -d '=' -f 2)
 
-if [ "$DISTRO" -eq "debian" ]; then
+if [ "$DISTRO" = "debian" ]; then
 	apt install -y software-properties-common ca-certificates lsb-release apt-transport-https
 	wget -O /etc/apt/trusted.gpg.d/php.gpg https://packages.sury.org/php/apt.gpg
 	echo "deb https://packages.sury.org/php/ $(lsb_release -sc) main" | tee /etc/apt/sources.list.d/php.list
-elif [ "$DISTRO" -eq "ubuntu" ]; then
+elif [ "$DISTRO" = "ubuntu" ]; then
 	add-apt-repository ppa:ondrej/php
 else
 	echo "$DISTRO is not supported"
 	exit
 fi
 
-echo "Added keyring for php5.6 ppa"
+echo "Added keyring for php5.6 PPA"
 
 apt update -y
 
 echo "Installing php v5.6"
-apt install php5.6 php5.6-common php5.6-curl php5.6-xml php5.6-json php5.6-gd php5.6-mbstring php5.6-zip php5.6-fpm php5.6-mcrypt php5.6-pdo php5.6-mysql
+apt install php5.6 php5.6-common php5.6-curl php5.6-xml php5.6-json php5.6-gd php5.6-mbstring php5.6-zip php5.6-fpm php5.6-mcrypt php5.6-pdo php5.6-mysql -y
 
 # soft link so we can use `php56` as our binary not `php5.6`
-sudo ln -s $(which php5.6) /usr/bin/php56
+ln -s $(which php5.6) /usr/bin/php56
 
 echo "Installing composer v2.2"
 # install composer v2.2
@@ -63,52 +64,35 @@ mv composer.phar /usr/local/bin/composer
 rm composer-setup.php
 
 echo "Installing databases"
-# install redis
-apt install redis
 
-# install mysql v8.0
-wget -O mysql-server.deb-bundle.tar "https://dev.mysql.com/get/Downloads/MySQL-8.0/mysql-server_8.0.43-1ubuntu20.04_amd64.deb-bundle.tar"
-
-if [ "$(md5sum mysql-server.deb-bundle.tar 
-		| cut -d ' ' -f 1)" -eq "271fb978ad67ea527d769eb336dfa9fe" ]; then
-	mkdir mysql-tmp
-	tar -xvf mysql-server.deb-bundle.tar -C mysql-tmp
-	dpkg -i mysql-tmp/*.deb
-	rm mysql-server.deb-bundle.tar
-	rm -rf mysql-tmp
-	if [ ! -f /etc/mysql/mysql.conf.d/mysqld.cnf ]; then
-		echo "Error in database configuration"
-		exit
-	fi
-	echo "default-authentication-plugin=mysql_native_password" >> /etc/mysql/mysql.conf.d/mysqld.cnf
-	DATABASE="mysql"
-else
-	echo "Failed to verify mysql-server package checksum"
-	echo "Installing MariaDB"
-	apt install mariadb-server
-	DATABASE="mariadb"
-fi
+# install mariadb and redis
+apt install mariadb-server redis -y
 
 echo "Configuring database"
 
-"$DATABASE" -u root < "CREATE USER 'budget'@'localhost' IDENTIFIED BY '$1';
-					   CREATE DATABASE budget;
-					   GRANT ALL PRIVILEGES ON budget.* TO 'budget'@'localhost';"
+read -d '' DATABASE_INIT << EOF
+CREATE USER 'budget'@'localhost' IDENTIFIED BY '$1';
+CREATE DATABASE budget;
+GRANT ALL PRIVILEGES ON budget.* TO 'budget'@'localhost';
+EOF
+
+echo "$DATABASE_INIT" | mariadb -u root
 
 echo "Configured database"
 
 # install nginx
 echo "Installing webserver"
 
-apt install nginx
+apt install nginx -y
 mkdir -p /var/www/html/simplebudget_server
-SERVER_CONFIG='server{
+read -d '' SERVER_CONFIG << EOF
+server{
         listen 80;
         root /var/www/html/simplebudget_server/public;
         index index.php;
 
         location / {
-            try_files $uri $uri/ /index.php?$query_string;
+            try_files \$uri \$uri/ /index.php?\$query_string;
         }
 
         location ~ \.php$ {
@@ -116,15 +100,20 @@ SERVER_CONFIG='server{
           fastcgi_pass unix:/run/php/php5.6-fpm.sock;
           fastcgi_hide_header X-Powered-By;
         }
-}'
-echo "$SERVER_CONFIG" > /etc/nginx/sites-available/simplebudget_server.conf
+}
+EOF
+
+if [ -f /etc/nginx/sites-enabled/default ]; then
+	rm /etc/nginx/sites-enabled/default
+fi
+echo "$SERVER_CONFIG" > /etc/nginx/sites-enabled/simplebudget_server.conf
 
 echo "Configured webserver"
 
-ENV_TEMPLATE="
+read -d '' ENV_TEMPLATE << EOF
 APP_ENV=local
 APP_DEBUG=false
-APP_KEY=${$(uuidgen)//-/}
+APP_KEY=$(uuidgen | tr -d '-')
 
 DB_HOST=localhost
 DB_DATABASE=budget
@@ -139,29 +128,35 @@ MAIL_DRIVER=smtp
 MAIL_HOST=mailtrap.io
 MAIL_PORT=2525
 MAIL_USERNAME=null
-MAIL_PASSWORD=null"
+MAIL_PASSWORD=null
+EOF
 
 echo "$ENV_TEMPLATE" > .env
 
 echo "Installing composer dependencies"
-php56 $(which composer) install
+
+if [ -d "vendor" ]; then
+	rm -rf vendor
+fi
+
+sudo -u \#1000 php56 $(which composer) install
 
 echo "Creating database tables"
 php56 artisan migrate
 
 echo "Copying server files to webserver root directory"
 # move the folder to the server root in specified in our nginx configuration
-sudo mv . /var/www/html/simplebudget_server
+cp -r . /var/www/html/simplebudget_server
 
 # change ownership to webserver user (usually www-data for nginx and php fpm)
-sudo chown -R www-data:www-data /var/www/html/simplebudget_server
+chown -R www-data:www-data /var/www/html/simplebudget_server
 
 # verify nginx config
-sudo nginx -t
+nginx -t
 
 echo "Restarting webserver"
 # restart nginx
-sudo systemctl restart nginx.service
+systemctl restart nginx.service
 
 echo "Setup complete"
 echo "View server API documentation at http://localhost/budget/docs"
