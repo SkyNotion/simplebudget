@@ -154,7 +154,11 @@ sudo apt install nginx
 
 ```bash
 sudo mkdir -p /var/www/html/simplebudget_server
-sudo nano /etc/nginx/sites-available/simplebudget_server.conf
+
+# make sure there is no default server confid
+rm /etc/nginx/sites-enabled/default
+
+sudo nano /etc/nginx/sites-enabled/simplebudget_server.conf
 ```
 and paste this ⬇️
 ```
@@ -203,7 +207,7 @@ php56 artisan migrate
 make it visible to the webserver
 ```bash
 # move the folder to the server root in specified in our nginx configuration
-sudo mv simplebudget_server /var/www/html/simplebudget_server
+sudo mv . /var/www/html/simplebudget_server
 
 # change ownership to webserver user (usually www-data for nginx and php fpm)
 sudo chown -R www-data:www-data /var/www/html/simplebudget_server
