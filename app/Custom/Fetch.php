@@ -21,13 +21,9 @@ class Fetch{
 	}
 
 	public static function accountsWithParent($user_id, $parent_id){
-		$accounts = Account::where('user_id', $user_id);
-		if($parent_id == null){
-			$accounts = $accounts->whereNull('parent_id', $parent_id);
-		}else{
-			$accounts = $accounts->where('parent_id', $parent_id);
-		}
-		return $accounts->get();
+		return Account::where('user_id', $user_id)
+					  ->where('parent_id', $parent_id)
+					  ->get();
 	}
 
 	public static function budget($user_id, $account_id){
