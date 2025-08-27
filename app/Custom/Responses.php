@@ -57,4 +57,8 @@ class Responses{
 	public static function apiAuthUnauthorized(){
 		return self::error('Unauthorized, api key is missing or invalid', 401);
 	}
+
+	public static function invalidRequest(){
+		return self::error('Invalid request', 400);
+	}
 }

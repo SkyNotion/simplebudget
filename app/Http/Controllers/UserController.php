@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 use Validator;
 use Hash;
+use Cache;
 
 use App\User;
 use App\ApiKey;
@@ -44,14 +45,44 @@ class UserController extends Controller {
 
 	public function api_key(Request $request, $api_key = null){
 		if($api_key){
-			if(ApiKey::where('user_id', $request->user_id)
-					 ->where(function($query){
-					 	$query->where('api_key', $api_key)
-					 		  ->orWhere('name', $api_key);
-					 })->delete()){
+			// first we check if it's the name of the api key 
+			$key = ApiKey::where('user_id', $request->user_id)
+					 	 ->where('name', $api_key)
+					 	 ->first();
+			if($key != null){
+				if(Cache::has($request->user_id.':'.$key->key_id)){
+					Cache::delete($request->user_id.':'.$key->key_id);
+				}
+				$key->delete();
 				return Responses::message('Revoked', 200);
 			}
-			return Responses::apiKeyExists();
+
+			// if it is not the api key name
+			try{
+				$api_key = base64_decode($api_key);
+			}catch(Exception $e){
+				return Responses::invalidRequest();
+			}
+			$api_key = explode('.', $api_key);
+			if(sizeof($api_key) != 2){
+				return Responses::invalidRequest();
+			}
+			$ids = explode(':', $api_key[0]);
+			if(sizeof($ids) != 2){
+				return Responses::invalidRequest();
+			}
+			$key = ApiKey::where('user_id', $ids[0])
+					 	 ->where('key_id', $ids[1])
+					 	 ->first();
+			if($key == null){
+				return Responses::invalidRequest();
+			}
+
+			if(Cache::has($api_key[0])){
+				Cache::delete($api_key[0]);
+			}
+			$key->delete();
+			return Responses::message('Revoked', 200);
 		}
 
 		if(sizeof(ApiKey::where('user_id', $request->user_id)
