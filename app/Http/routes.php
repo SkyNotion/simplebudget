@@ -23,8 +23,8 @@ Route::group(['prefix' => 'budget'], function(){
 	Route::post('user', 'UserController@create');
 
 	Route::group(['middleware' => ['auth.user']], function(){
-		Route::post('api_key', 'UserController@api_key');
-		Route::delete('api_key/{api_key}', 'UserController@api_key');
+		Route::post('api_key', 'UserController@apiKeyCreate');
+		Route::delete('api_key/{api_key}', 'UserController@apiKeyDestroy');
 	});
 	
 	Route::group(['middleware' => ['auth.api']], function(){
