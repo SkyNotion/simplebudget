@@ -14,18 +14,23 @@ use App\Budget;
 
 use App\Http\Controllers\NotificationController;
 
+use App\Custom\Fetch;
+use App\Custom\Responses;
+
 class TransactionController extends Controller {
 
 	public function index(Request $request, $account_id = null)
 	{
-		$transactions = DB::table('transactions')
-				->join('accounts', 'transactions.account_id', '=', 'accounts.account_id')
+		$offset = $request->input('offset', 0);
+		$transactions = Transaction::join('accounts', 'transactions.account_id', '=', 'accounts.account_id')
 				->where('accounts.user_id', $request->user_id)
 				->where('transactions.account_id', $account_id);
 		if($request->has('search')){
-			$transactions = $transactions
-				->whereRaw('transactions.description like ? or transactions.deposit like ? or transactions.withdrawal like ? or transactions.balance like ?', 
-				array_fill(0, 4, '%'.(string)$request->input('search').'%'));
+			$search_query = '%'.(string)$request->input('search').'%';
+			$transactions = $transactions->where('transactions.description', 'like', $search_query)
+				->orWhere('transactions.deposit', 'like', $search_query)
+				->orWhere('transactions.withdrawal', 'like', $search_query)
+				->orWhere('transactions.balance', 'like', $search_query);
 		}elseif($request->has('date_range')){
 			$transactions = $transactions
 				->whereBetween('transactions.created_at', explode(";", $request->input('date_range')));
@@ -33,28 +38,23 @@ class TransactionController extends Controller {
 		$transactions = $transactions->select(
 					'transactions.transaction_id', 'transactions.description',
 					'transactions.deposit', 'transactions.withdrawal','transactions.balance',
-					'transactions.created_at', 'transactions.updated_at'
-				)->get();
+					'transactions.created_at', 'transactions.updated_at')
+					->skip($offset)->take(20)->get();
 		if(!sizeof($transactions)){
-			return response()->json(['message' => 'No transactions found'], 204);
+			return Responses::message('No transactions found', 204);
 		}
-		return response()->json($transactions, 200);
+		return Responses::json($transactions, 200);
 	}
 
 	public function create(Request $request, $account_id = null)
 	{
 		$body = $request->all();
 		if(!(isset($body['deposit']) ^ isset($body['withdrawal']))){
-			return response()->json(['error' => 'Cannot be both a deposit and withdrawal'], 400);
+			return Responses::error('Cannot be both a deposit and withdrawal', 400);
 		}
 
-		$account = Account::whereRaw('user_id = ? and account_id = ?',
-					[$request->user_id, $account_id])->first();
-		if(!sizeof($account)){
-			return response()->json(['error' => 'Account does not exist'], 404);
-		}
-
-		$budget = Budget::where('account_id', '=', $account_id)->first();
+		$account = Fetch::accountOrFail($request->user_id, $account_id);
+		$budget = Fetch::budget($request->user_id, $account_id);
 
 		$transaction = new Transaction;
 		$transaction->account_id = $account_id;
@@ -78,26 +78,23 @@ class TransactionController extends Controller {
 		}
 
 		$transaction->save();
-		$transaction = $transaction->fresh()->toArray();
+		$transaction->fresh();
 
 		if(sizeof($budget)){
 			$message = null;
-			$total_deposits = Transaction::whereRaw("account_id = ? AND created_at >= ?", 
-							[$account_id, $budget->updated_at->toDateTimeString()])
-							->whereNotNull("deposit")
-							->sum("deposit");
-			$total_withdrawal = Transaction::whereRaw("account_id = ? AND created_at >= ?", 
-							[$account_id, $budget->updated_at->toDateTimeString()])
-							->whereNotNull("withdrawal")
-							->sum("withdrawal");
-			$budget_balance = $total_withdrawal - $total_deposits;
-			$percentage = ($budget_balance/$budget->budget_limit)*100;
+			$balance = Transaction::where('account_id', $account_id)
+								   ->where('created_at', '>=', $budget->updated_at->toDateTimeString())
+								   ->whereNotNull('deposit')
+								   ->orWhereNotNull('withdrawal')
+								   ->select(DB::raw('(sum(withdrawal) - sum(deposit)) as budget_balance'))
+								   ->first();
+			$percentage = ($balance->budget_balance/$budget->budget_limit)*100;
 			if($percentage > 70 && $percentage <= 100){
 				$message = "You have used $percentage% of your budget";
 			}elseif ($percentage > 100) {
-				$message = "You have passed your budget by ".(string)($budget_balance-$budget->budget_limit).$account->currency;
+				$message = "You have passed your budget by ".(string)($balance->budget_balance-$budget->budget_limit).$account->currency;
 			}
-			if($message != null){
+			if(!is_null($message)){
 				NotificationController::create([
 					'user_id' => $request->user_id,
 					'source' => 'budget',
@@ -111,24 +108,23 @@ class TransactionController extends Controller {
 			NotificationController::create([
 				'user_id' => $request->user_id,
 				'source' => 'transaction',
-				'source_id' => $transaction['transaction_id'],
-				'content' => json_encode($transaction)
+				'source_id' => $transaction->transaction_id,
+				'content' => json_encode($transaction->toArray())
 			]);
 		}
 
-		return response()->json($transaction, 200);
+		return Responses::json($transaction);
 	}
 
 	public function destroy(Request $request, $account_id = null, $transaction_id = null)
 	{
-		if(!DB::table('transactions')
-				->join('accounts', 'transactions.account_id', '=', 'accounts.account_id')
+		if(!Transaction::join('accounts', 'transactions.account_id', '=', 'accounts.account_id')
 				->where('accounts.user_id', $request->user_id)
 				->where('transactions.account_id', $account_id)
 				->where('transactions.transaction_id', $transaction_id)->delete()){
-			return response()->json(['error' => 'Account or transaction does not exist'], 404);
+			return Responses::noTransaction();
 		}
-		return response()->json(['message' => 'Successful'], 200);
+		return Responses::success();
 	}
 
 }

@@ -9,26 +9,27 @@ use Redis;
 
 use App\Notification;
 
+use App\Custom\Responses;
+
 class NotificationController extends Controller {
 
 	public function index(Request $request)
 	{
 		if($request->has('all')){
 			if($request->input('all') != 'true'){
-				return response()->json(
+				return Responses::json(
 					['error' => 'Invalid request, \'all\' cannot be set to \''.$request->input('all').'\'']
 				, 400);
 			}
-			return response()->json(
-				Notification::where('user_id', $request->user_id)->get(), 200);
+			return Responses::json(Notification::where('user_id', $request->user_id)->get());
 		}
 
 		$notification_item = Redis::brpop(['notification:'.$request->user_id], 28);
 		if(!$notification_item){
-			return response('', 204);
+			return Responses::noContent();
 		}
 
-		return response()->json(json_decode($notification_item[1]), 200);
+		return Responses::json(json_decode($notification_item[1]));
 	}
 
 	public static function create($notification_item){
