@@ -1,7 +1,7 @@
 <!doctype html>
 <html>
     <head>
-      <title>Simple Budget Server API</title>
+      <title>API | SimpleBudget</title>
       <meta charset="utf-8"/>
       <meta name="viewport" content="width=device-width, initial-scale=1" />
     </head>
