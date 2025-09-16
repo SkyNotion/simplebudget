@@ -8,7 +8,7 @@
   </head>
   <body>
     @yield('content')
-    @if(isset($message) && isset($level))
+    @if((isset($message) && isset($level)) || (session('message') && session('level')))
       <div id="toast-container"></div>
       <script>
         function Toast(message, level, duration = 10000) {
@@ -22,7 +22,8 @@
               toast.remove();
           }, duration);
         }
-        Toast("{{ $message }}", "{{ $level }}");
+        Toast("{{ session('message') ? session('message') : $message }}",
+              "{{ session('level') ? session('level') : $level }}");
       </script>
     @endif
   </body>

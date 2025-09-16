@@ -15,7 +15,7 @@ class AccountCreationCheck {
 	{
 		$response = $next($request);
 		if($response->getStatusCode() == 201){
-			return view('auth.login', [
+			return redirect()->route('auth.login')->with([
 				'message' => 'Account Created Successfully, Login',
 				'level' => 'success'
 			]);
