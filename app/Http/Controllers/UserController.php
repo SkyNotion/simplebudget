@@ -7,6 +7,7 @@ use Illuminate\Http\Request;
 
 use Validator;
 use Hash;
+use Auth;
 
 use App\User;
 use App\ApiKey;
@@ -40,6 +41,37 @@ class UserController extends Controller {
 		$params['password'] = Hash::make($params['password']);
 
 	    return response()->json(User::create($params)->attributesToArray(), 201);
+	}
+
+	public function login(Request $request){
+		$params = $request->all();
+		$rv = Validator::make($params,
+			['email' => 'required|email',
+			 'password' => 'required'],
+			['email.required' => 'Email is missing',
+			 'email.email' => 'Email not valid',
+			 'password.required' => 'Password is missing']
+		);
+
+		if($rv->fails()){
+			return view('auth.login', [
+				'message' => $rv->errors()->first(),
+				'level' => 'error'
+			]);
+		}
+
+		if(Auth::attempt(['email' => $params['email'], 'password' => $params['password']])){
+			if($request->has('redirect')){
+				return redirect()->intended($params['redirect']);
+			}else{
+				return redirect()->route('dashboard');
+			}
+		}else{
+			return view('auth.login', [
+				'message' => 'Email or password is wrong',
+				'level' => 'error'
+			]);
+		}
 	}
 
 	public function apiKeyCreate(Request $request){

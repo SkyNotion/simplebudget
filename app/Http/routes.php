@@ -48,10 +48,25 @@ Route::group(['prefix' => 'budget'], function(){
 	});
 });
 
-Route::get('/', 'WelcomeController@index');
-Route::get('home', 'HomeController@index');
+Route::post('signup', ['middleware' => 'account.creation', 'uses' => 'UserController@create']);
+Route::get('signup', ['as' => 'auth.signup', function(){
+	return view('auth.signup');
+}]);
 
-Route::controllers([
-	'auth' => 'Auth\AuthController',
-	'password' => 'Auth\PasswordController',
-]);
+Route::post('login', 'UserController@login');
+Route::get('login', ['as' => 'auth.login', function(){
+	if(Auth::check()){
+		return redirect()->route('dashboard');
+	}
+	return view('auth.login');
+}]);
+
+Route::get('/', function(){
+	return redirect()->route('auth.login');
+});
+
+Route::get('dashboard', ['as' => 'dashboard', 'uses' => 'DashboardController@dashboard']);
+
+Route::any('{any}', function(){
+	return view('error', ['status' => 404, 'message' => 'Not Found']);
+})->where('any', '.*');
