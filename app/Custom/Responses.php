@@ -47,7 +47,7 @@ class Responses{
 	}
 
 	public static function apiKeyExists(){
-		return self::error('Api key or name does not exist', 400);
+		return self::error('Api key with that name already exist', 400);
 	}
 
 	public static function basicAuthUnauthorized(){

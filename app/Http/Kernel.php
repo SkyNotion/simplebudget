@@ -27,9 +27,7 @@ class Kernel extends HttpKernel {
 		'auth' => 'App\Http\Middleware\Authenticate',
 		'auth.basic' => 'Illuminate\Auth\Middleware\AuthenticateWithBasicAuth',
 		'guest' => 'App\Http\Middleware\RedirectIfAuthenticated',
-		'auth.user' => 'App\Http\Middleware\UserAuth',
-		'auth.api' => 'App\Http\Middleware\ApiAuth',
-		'auth.session' => 'App\Http\Middleware\SessionAuth',
+		'auth.request' => 'App\Http\Middleware\RequestAuth',
 		'account.creation' => 'App\Http\Middleware\AccountCreationCheck'
 	];
 

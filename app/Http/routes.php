@@ -21,13 +21,11 @@ Route::group(['prefix' => 'api'], function(){
 	}])->where('scaler', 'scaler');
 
 	Route::post('user', 'UserController@create');
-
-	Route::group(['middleware' => ['auth.user', 'auth.session']], function(){
-		Route::post('api_key', 'UserController@apiKeyCreate');
-		Route::delete('api_key/{api_key}', 'UserController@apiKeyDestroy');
-	});
 	
-	Route::group(['middleware' => ['auth.api', 'auth.session']], function(){
+	Route::group(['middleware' => ['auth.request']], function(){
+		Route::post('key', 'UserController@apiKeyCreate');
+		Route::delete('key/{api_key}', 'UserController@apiKeyDestroy');
+
 		Route::post('account', 'AccountController@create');
 		Route::get('account', 'AccountController@index');
 
@@ -65,8 +63,8 @@ Route::get('/', function(){
 	return redirect()->route('auth.login');
 });
 
-Route::group(['middleware' => ['auth.session']], function(){
-	Route::get('dashboard', ['as' => 'dashboard', 'uses' => 'DashboardController@dashboard']);
+Route::group(['middleware' => ['auth.request']], function(){
+	Route::get('dashboard', ['as' => 'app.dashboard', 'uses' => 'DashboardController@dashboard']);
 });
 
 Route::any('{any}', function(){
