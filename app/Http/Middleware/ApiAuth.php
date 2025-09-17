@@ -8,7 +8,7 @@ use App\ApiKey;
 
 use App\Custom\Responses;
 
-class ApiAuthMiddleware {
+class ApiAuth {
 
 	/**
 	 * Handle an incoming request.

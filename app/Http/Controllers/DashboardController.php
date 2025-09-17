@@ -10,10 +10,7 @@ use Auth;
 class DashboardController extends Controller {
 
 	public function dashboard(Request $request){
-		if(!Auth::check()){
-			return redirect()->route('auth.login', ['redirect' => $request->url()]);
-		}
-		return view('docs.api', ['webapp' => 'budget']);
+		return view('docs.api');
 	}
 
 }

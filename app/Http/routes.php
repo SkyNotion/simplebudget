@@ -22,12 +22,12 @@ Route::group(['prefix' => 'api'], function(){
 
 	Route::post('user', 'UserController@create');
 
-	Route::group(['middleware' => ['auth.user']], function(){
+	Route::group(['middleware' => ['auth.user', 'auth.session']], function(){
 		Route::post('api_key', 'UserController@apiKeyCreate');
 		Route::delete('api_key/{api_key}', 'UserController@apiKeyDestroy');
 	});
 	
-	Route::group(['middleware' => ['auth.api']], function(){
+	Route::group(['middleware' => ['auth.api', 'auth.session']], function(){
 		Route::post('account', 'AccountController@create');
 		Route::get('account', 'AccountController@index');
 
@@ -65,7 +65,9 @@ Route::get('/', function(){
 	return redirect()->route('auth.login');
 });
 
-Route::get('dashboard', ['as' => 'dashboard', 'uses' => 'DashboardController@dashboard']);
+Route::group(['middleware' => ['auth.session']], function(){
+	Route::get('dashboard', ['as' => 'dashboard', 'uses' => 'DashboardController@dashboard']);
+});
 
 Route::any('{any}', function(){
 	return view('errors.404');

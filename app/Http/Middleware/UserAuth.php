@@ -8,7 +8,7 @@ use App\User;
 
 use App\Custom\Responses;
 
-class UserAuthMiddleware {
+class UserAuth {
 
 	public $validation_messages = [
 		'email.required' => 'Email is missing',
