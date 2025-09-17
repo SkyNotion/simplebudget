@@ -11,14 +11,14 @@
 |
 */
 
-Route::group(['prefix' => 'budget'], function(){
+Route::group(['prefix' => 'api'], function(){
 	Route::get('/', function(){ 
 		return redirect()->route('docs.api');
 	});
 
-	Route::get('docs/{scaler?}', ['as' => 'docs.api', function($use_scaler = null){
-		return view('docs.'.($use_scaler == "scaler" ? 'scaler' : 'api'), ['webapp' => 'budget']);
-	}]);
+	Route::get('docs/{scaler?}', ['as' => 'docs.api', function($api_view = "api"){
+		return view("docs.$api_view");
+	}])->where('scaler', 'scaler');
 
 	Route::post('user', 'UserController@create');
 
@@ -68,5 +68,5 @@ Route::get('/', function(){
 Route::get('dashboard', ['as' => 'dashboard', 'uses' => 'DashboardController@dashboard']);
 
 Route::any('{any}', function(){
-	return view('error', ['status' => 404, 'message' => 'Not Found']);
+	return view('errors.404');
 })->where('any', '.*');

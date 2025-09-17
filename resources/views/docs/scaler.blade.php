@@ -10,7 +10,7 @@
       <script src="https://cdn.jsdelivr.net/npm/@scalar/api-reference"></script>
       <script>
         Scalar.createApiReference('#app', {
-          url: "{{ asset("/api/$webapp/api.yaml") }}",
+          url: "{{ asset('/openapi/api.yaml') }}",
           proxyUrl: 'https://proxy.scalar.com',
         })
       </script>

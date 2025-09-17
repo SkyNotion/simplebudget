@@ -20,7 +20,7 @@
 
             window.onload = function() {
                 window.ui = SwaggerUIBundle({
-                    url: "{{ asset("/api/$webapp/api.yaml") }}",
+                    url: "{{ asset('/openapi/api.yaml') }}",
                     dom_id: '#swagger-ui',
                     deepLinking: true,
                     presets: [
