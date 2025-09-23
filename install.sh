@@ -84,11 +84,11 @@ echo "Configured database"
 echo "Installing webserver"
 
 apt install nginx -y
-mkdir -p /var/www/html/simplebudget_server
+mkdir -p /var/www/html/simplebudget
 read -d '' SERVER_CONFIG << EOF
 server{
         listen 80;
-        root /var/www/html/simplebudget_server/public;
+        root /var/www/html/simplebudget/public;
         index index.php;
 
         location / {
@@ -106,29 +106,44 @@ EOF
 if [ -f /etc/nginx/sites-enabled/default ]; then
 	rm /etc/nginx/sites-enabled/default
 fi
-echo "$SERVER_CONFIG" > /etc/nginx/sites-enabled/simplebudget_server.conf
+echo "$SERVER_CONFIG" > /etc/nginx/sites-enabled/simplebudget.conf
 
 echo "Configured webserver"
 
 read -d '' ENV_TEMPLATE << EOF
+APP_NAME=SimpleBudget
 APP_ENV=local
-APP_DEBUG=false
 APP_KEY=$(uuidgen | tr -d '-')
+APP_DEBUG=false
+APP_LOG_LEVEL=debug
+APP_URL=http://localhost
 
+DB_CONNECTION=mysql
 DB_HOST=localhost
+DB_PORT=3306
 DB_DATABASE=budget
 DB_USERNAME=budget
 DB_PASSWORD=$1
 
-CACHE_DRIVER=redis
-SESSION_DRIVER=file
+BROADCAST_DRIVER=log
+CACHE_DRIVER=file
+SESSION_DRIVER=redis
 QUEUE_DRIVER=sync
 
+REDIS_HOST=127.0.0.1
+REDIS_PASSWORD=null
+REDIS_PORT=6379
+
 MAIL_DRIVER=smtp
-MAIL_HOST=mailtrap.io
+MAIL_HOST=smtp.mailtrap.io
 MAIL_PORT=2525
 MAIL_USERNAME=null
 MAIL_PASSWORD=null
+MAIL_ENCRYPTION=null
+
+PUSHER_APP_ID=
+PUSHER_APP_KEY=
+PUSHER_APP_SECRET=
 EOF
 
 echo "$ENV_TEMPLATE" > .env
@@ -144,14 +159,18 @@ sudo -u \#1000 php56 $(which composer) install
 echo "Creating database tables"
 php56 artisan migrate
 
+echo "Initializing laravel/passport"
+php56 artisan passport:install
+
 echo "Copying server files to webserver root directory"
 # move the folder to the server root in specified in our nginx configuration
-cp -r . /var/www/html/simplebudget_server
+cp -r . /var/www/html/simplebudget
 
 # change ownership to webserver user (usually www-data for nginx and php fpm)
-chown -R www-data:www-data /var/www/html/simplebudget_server
+chown -R www-data:www-data /var/www/html/simplebudget
 
 # verify nginx config
+# NOTE: check if nginx -t prints to stderr
 nginx -t
 
 echo "Restarting webserver"
@@ -159,4 +178,4 @@ echo "Restarting webserver"
 systemctl restart nginx.service
 
 echo "Setup complete"
-echo "View server API documentation at http://localhost/budget/docs"
+echo "View server API documentation at http://localhost/api/docs"

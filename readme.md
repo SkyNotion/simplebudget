@@ -2,11 +2,9 @@
 
 Simple Budget is a very simple budgeting software, It consists of two parts the server (Which this is) and a client, Although the server's API can be utilized by  other clients.
 
-Simple Budget Server is the server software powering Simple Budget, And it is the core of the whole application.
+Simple Budget Server is built with `larave v5.4` framework, Simple Budget Server has tested only with `php v5.6`
 
-Simple Budget Server is built with `larave v5.0` framework, Simple Budget Server has tested only with `php v5.6`
-
-NOTE: To develop `Simple Budget Server` i looked at [gnucash](https://gnucash.org/) to understand how it does accounts, transactions and budgeting.
+NOTE: To develop `Simple Budget` i looked at [gnucash](https://gnucash.org/) to understand how it does accounts, transactions and budgeting.
 
 ## Features
     - Create user accounts
@@ -22,13 +20,13 @@ NOTE: To develop `Simple Budget Server` i looked at [gnucash](https://gnucash.or
 
 ## API Documentation
 
-The API Documentation can be found [here](https://api.meshanthony.name.ng/budget/docs) (swagger-ui) and for those who prefer [scaler](https://api.meshanthony.name.ng/budget/docs/scaler)
+The API Documentation can be found [here](https://budget.meshanthony.name.ng/api/docs) (swagger-ui)
 
 ## Installation
 
 ### Install `php`
 
-`php v5.6` is going to be installed as it is  the max version supported by `laravel v5.0`
+`php v5.6` is going to be installed as it is  the minimum version supported (and widely available)  by `laravel v5.4`
 
 **For Arch Linux**
 
@@ -153,18 +151,18 @@ sudo apt install nginx
 **To configure**
 
 ```bash
-sudo mkdir -p /var/www/html/simplebudget_server
+sudo mkdir -p /var/www/html/simplebudget
 
 # make sure there is no default server confid
 rm /etc/nginx/sites-enabled/default
 
-sudo nano /etc/nginx/sites-enabled/simplebudget_server.conf
+sudo nano /etc/nginx/sites-enabled/simplebudget.conf
 ```
 and paste this ⬇️
 ```
 server{
         listen 80;
-        root /var/www/html/simplebudget_server/public;
+        root /var/www/html/simplebudget/public;
         index index.php;
 
         location / {
@@ -183,10 +181,7 @@ save `ctrl+o then Enter` and exit `ctrl+x`
 ### Clone the repo
 
 ```bash
-git clone https://github.com/Mesh-Sys/simplebudget_server.git
-```
-install dependencies
-```bash
+git clone https://github.com/SkyNotion/simplebudget_server.git
 cd simplebudget_server
 ```
 add enviromental variables (e.g user password for database)
@@ -204,13 +199,17 @@ create database tables
 ```bash
 php56 artisan migrate
 ```
+initialize `laravel/passport`
+```bash
+php56 artisan passport:install
+```
 make it visible to the webserver
 ```bash
 # move the folder to the server root in specified in our nginx configuration
-sudo mv . /var/www/html/simplebudget_server
+sudo mv . /var/www/html/simplebudget
 
 # change ownership to webserver user (usually www-data for nginx and php fpm)
-sudo chown -R www-data:www-data /var/www/html/simplebudget_server
+sudo chown -R www-data:www-data /var/www/html/simplebudget
 
 # verify nginx config
 sudo nginx -t
@@ -225,7 +224,7 @@ To get the server up and running on `debian\ubuntu` you can just use the install
 
 ```bash
 # making sure the repo is cloned
-git clone https://github.com/Mesh-Sys/simplebudget_server.git
+git clone https://github.com/SkyNotion/simplebudget_server.git
 
 cd simplebudget_server
 
@@ -238,6 +237,6 @@ sudo ./install.sh "<YOUR_DATABASE_USER_PASSWORD>"
 
 ## Check if the server is active
 
-in your browser paste this link http://localhost/budget/docs and press enter, The API 
+copy this link http://localhost/api/docs and paste it in your browser paste then press enter, The API 
 documentation should come up
 
