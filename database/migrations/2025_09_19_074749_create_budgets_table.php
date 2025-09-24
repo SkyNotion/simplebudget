@@ -14,7 +14,7 @@ class CreateBudgetsTable extends Migration
     public function up()
     {
         Schema::create('budgets', function (Blueprint $table) {
-            $table->bigIncrements('budget_id');
+            $table->bigIncrements('id');
             $table->bigInteger('account_id')->unsigned();
             $table->string('name')->nullable();
             $table->text('description')->nullable();
@@ -22,7 +22,7 @@ class CreateBudgetsTable extends Migration
             $table->double('balance');
             $table->text('entities');
             $table->timestamps();
-            $table->foreign('account_id')->references('account_id')->on('accounts')->onDelete('cascade');
+            $table->foreign('account_id')->references('id')->on('accounts')->onDelete('cascade');
         });
     }
 

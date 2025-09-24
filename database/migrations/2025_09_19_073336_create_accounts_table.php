@@ -14,7 +14,7 @@ class CreateAccountsTable extends Migration
     public function up()
     {
         Schema::create('accounts', function (Blueprint $table) {
-            $table->bigIncrements('account_id');
+            $table->bigIncrements('id');
             $table->bigInteger('parent_id')->unsigned()->nullable();
             $table->bigInteger('user_id')->unsigned();
             $table->string('name');
@@ -24,8 +24,8 @@ class CreateAccountsTable extends Migration
             $table->string('type', 255)->default("Bank");
             $table->text('description')->nullable();
             $table->timestamps();
-            $table->foreign('parent_id')->references('account_id')->on('accounts')->onDelete('cascade');
-            $table->foreign('user_id')->references('user_id')->on('users')->onDelete('cascade');
+            $table->foreign('parent_id')->references('id')->on('accounts')->onDelete('cascade');
+            $table->foreign('user_id')->references('id')->on('users')->onDelete('cascade');
         });
     }
 
