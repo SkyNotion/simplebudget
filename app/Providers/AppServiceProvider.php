@@ -13,12 +13,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        if (config('app.debug')) {
-            //error_reporting(E_ALL & ~E_USER_DEPRECATED);
-            error_reporting(0);
-        } else {
-            error_reporting(0);
-        }
+        
     }
 
     /**
