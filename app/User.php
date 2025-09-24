@@ -1,10 +1,28 @@
-<?php namespace App;
+<?php
 
-use Illuminate\Database\Eloquent\Model;
+namespace App;
 
-class User extends Model {
-	protected $table = 'users';
-	protected $primaryKey = 'user_id';
-	protected $hidden = ['password', 'telegram_username'];
-	protected $fillable = ['name', 'email', 'password', 'telegram_username'];
+use Laravel\Passport\HasApiTokens;
+use Illuminate\Notifications\Notifiable;
+use Illuminate\Foundation\Auth\User as Authenticatable;
+
+class User extends Authenticatable
+{
+    use HasApiTokens, Notifiable;
+
+    protected $table = 'users';
+    protected $fillable = [
+        'name', 'email', 'password',
+    ];
+    protected $hidden = [
+        'password', 'remember_token',
+    ];
+
+    public function accounts(){
+        return $this->hasMany('App\Account');
+    }
+
+    public function findAccountOrFail($account_id){
+        return $this->accounts()->findOrFail($account_id);
+    }
 }

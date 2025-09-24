@@ -2,7 +2,7 @@
 <html xmlns="http://www.w3.org/1999/xhtml">
     <head>
         <meta charset="UTF-8">
-        <title>Simple Budget Server API</title>
+        <title>API | SimpleBudget</title>
         <link rel="stylesheet" type="text/css" href="{{ asset('/swagger-ui/swagger-ui.css') }}">
     </head>
     <body>
@@ -20,7 +20,7 @@
 
             window.onload = function() {
                 window.ui = SwaggerUIBundle({
-                    url: "{{ asset("/api/$webapp/api.yaml") }}",
+                    url: "{{ asset('/openapi/api.yaml') }}",
                     dom_id: '#swagger-ui',
                     deepLinking: true,
                     presets: [
