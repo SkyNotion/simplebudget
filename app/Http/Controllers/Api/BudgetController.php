@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 
@@ -8,10 +8,12 @@ use Validator;
 use App\Budget;
 use App\Custom\Responses as CustomResponse;
 
+use App\Http\Controllers\Controller;
+
 class BudgetController extends Controller
 {
     public function create(Request $request, $account_id = null){
-        $account = $request->user()->account($account_id);
+        $account = $request->user()->findAccountOrFail($account_id);
         $body = $request->only('name', 'description', 'entities');
         $rv = Validator::make($body,
             ['name' => 'string|max:255'
@@ -44,7 +46,7 @@ class BudgetController extends Controller
     }
 
     public function index(Request $request, $account_id = null){
-        $budget = $request->user()->account($account_id)->budget();
+        $budget = $request->user()->findAccountOrFail($account_id)->budget();
         if(!isset($budget)){
             return CustomResponse::notFound();
         }
@@ -52,7 +54,7 @@ class BudgetController extends Controller
     }
 
     public function destroy(Request $request, $account_id = null){
-        $budget = $request->user()->account($account_id)->budget();
+        $budget = $request->user()->findAccountOrFail($account_id)->budget();
         if(!isset($budget)){
             return CustomResponse::notFound();
         }

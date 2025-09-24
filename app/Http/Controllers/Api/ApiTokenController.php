@@ -1,12 +1,14 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 
 use Auth;
 use Validator;
 use App\Custom\Responses as CustomResponse;
+
+use App\Http\Controllers\Controller;
 
 class ApiTokenController extends Controller
 {
@@ -29,6 +31,6 @@ class ApiTokenController extends Controller
     }
 
     public function destroy(Request $request){
-        return $request->user();
+        $request->user()->token()->revoke();
     }
 }

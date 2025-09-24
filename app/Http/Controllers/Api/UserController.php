@@ -1,6 +1,6 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 
@@ -8,6 +8,8 @@ use Hash;
 use Validator;
 use App\User;
 use App\Custom\Responses as CustomResponse;
+
+use App\Http\Controllers\Controller;
 
 class UserController extends Controller
 {

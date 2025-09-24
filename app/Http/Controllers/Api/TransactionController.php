@@ -1,16 +1,18 @@
 <?php
 
-namespace App\Http\Controllers;
+namespace App\Http\Controllers\Api;
 
 use Illuminate\Http\Request;
 
 use Validator;
 use App\Custom\Responses as CustomResponse;
 
+use App\Http\Controllers\Controller;
+
 class TransactionController extends Controller
 {
     public function create(Request $request, $account_id = null){
-        $account = $request->user()->account($account_id);
+        $account = $request->user()->findAccountOrFail($account_id);
         $body = $request->only('description', 'deposit', 'withdrawal');
         $rv = Validator::make($body,
             ['description' => 'string',
@@ -34,7 +36,7 @@ class TransactionController extends Controller
     }
 
     public function index(Request $request, $account_id = null){
-        $account = $request->user()->account($account_id);
+        $account = $request->user()->findAccountOrFail($account_id);
         $offset = $request->input('offset');
 
         $transactions = $account->transactions();
@@ -63,8 +65,8 @@ class TransactionController extends Controller
     }
 
     public function destroy(Request $request, $account_id = null, $transaction_id = null){
-        $request->user()->account($account_id)
-                ->transaction($transaction_id)
+        $request->user()->findAccountOrFail($account_id)
+                ->findTransactionOrFail($transaction_id)
                 ->delete();
     }
 }

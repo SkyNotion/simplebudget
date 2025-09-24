@@ -25,32 +25,32 @@ Route::get('/', function(){
     return redirect()->route('docs.api');
 });
 
-Route::post('/user', 'UserController@create');
+Route::post('/user', 'Api\UserController@create');
 
-Route::middleware('auth.basic')->post('/token', 'ApiTokenController@create');
+Route::middleware('auth.basic')->post('/token', 'Api\ApiTokenController@create');
 
 Route::middleware('auth:api')->group(function(){
-    Route::get('/user', 'UserController@show');
+    Route::get('/user', 'Api\UserController@show');
 
-    Route::delete('/token', 'ApiTokenController@destroy');
+    Route::delete('/token', 'Api\ApiTokenController@destroy');
 
-    Route::post('/account', 'AccountController@create');
-    Route::get('/account', 'AccountController@index');
+    Route::post('/account', 'Api\AccountController@create');
+    Route::get('/account', 'Api\AccountController@index');
 
     Route::group(['prefix' => 'account/{account_id}', 'where' => ['account_id' => '[0-9]+']], function(){
-        Route::get('/', 'AccountController@show');
-        Route::patch('/', 'AccountController@update');
-        Route::delete('/', 'AccountController@destroy');
+        Route::get('/', 'Api\AccountController@show');
+        Route::patch('/', 'Api\AccountController@update');
+        Route::delete('/', 'Api\AccountController@destroy');
 
-        Route::get('/accounts', 'AccountController@index');
+        Route::get('/accounts', 'Api\AccountController@index');
 
-        Route::put('/transactions', 'TransactionController@create');
-        Route::get('/transactions', 'TransactionController@index');
-        Route::delete('/transactions/{transaction_id}', 'TransactionController@destroy')
+        Route::put('/transactions', 'Api\TransactionController@create');
+        Route::get('/transactions', 'Api\TransactionController@index');
+        Route::delete('/transactions/{transaction_id}', 'Api\TransactionController@destroy')
              ->where('transaction_id', '[0-9]+');
 
-        Route::put('/budget', 'BudgetController@create');
-        Route::get('/budget', 'BudgetController@index');
-        Route::delete('/budget', 'BudgetController@destroy');
+        Route::put('/budget', 'Api\BudgetController@create');
+        Route::get('/budget', 'Api\BudgetController@index');
+        Route::delete('/budget', 'Api\BudgetController@destroy');
     });
 });
