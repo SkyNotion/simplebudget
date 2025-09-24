@@ -11,7 +11,6 @@ class User extends Authenticatable
     use HasApiTokens, Notifiable;
 
     protected $table = 'users';
-    protected $primaryKey = 'user_id';
     protected $fillable = [
         'name', 'email', 'password',
     ];
@@ -20,10 +19,10 @@ class User extends Authenticatable
     ];
 
     public function accounts(){
-        return $this->hasMany('App\Account', 'user_id', 'user_id');
+        return $this->hasMany('App\Account');
     }
 
-    public function account($account_id){
+    public function findAccountOrFail($account_id){
         return $this->accounts()->findOrFail($account_id);
     }
 }

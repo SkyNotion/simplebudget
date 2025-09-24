@@ -9,7 +9,6 @@ use Illuminate\Database\Eloquent\Model;
 class Transaction extends Model
 {
     protected $table = 'transactions';
-    protected $primaryKey = 'transaction_id';
     protected $fillable = [
         'account_id', 'description', 'deposit',
         'withdrawal', 'balance'
@@ -19,7 +18,7 @@ class Transaction extends Model
     ];
 
     public function account(){
-        return $this->belongsTo('App\Account', 'account_id', 'account_id');
+        return $this->belongsTo('App\Account');
     }
 
     public static function boot(){
