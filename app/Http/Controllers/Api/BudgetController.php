@@ -14,11 +14,11 @@ class BudgetController extends Controller
 {
     public function create(Request $request, $account_id = null){
         $account = $request->user()->findAccountOrFail($account_id);
-        $body = $request->only('name', 'description', 'entities');
+        $body = $request->except('account_id', 'budget', 'balance');
         $rv = Validator::make($body,
-            ['name' => 'string|max:255'
-             'description' => 'string',
-             'entities' => 'array']
+            ['name' => 'string|max:255|nullable'
+             'description' => 'string|nullable',
+             'entities' => 'array|nullable']
         );
 
         if($rv->fails()){
@@ -46,7 +46,7 @@ class BudgetController extends Controller
     }
 
     public function index(Request $request, $account_id = null){
-        $budget = $request->user()->findAccountOrFail($account_id)->budget();
+        $budget = $request->user()->findAccountOrFail($account_id)->budget;
         if(!isset($budget)){
             return CustomResponse::notFound();
         }

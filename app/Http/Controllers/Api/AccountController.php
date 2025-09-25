@@ -12,16 +12,16 @@ use App\Http\Controllers\Controller;
 
 class AccountController extends Controller
 {
-    public function validator($user_id, $required = true){
+    public function validator($body, $user_id, $required = true){
         return Validator::make($body,
             ['name' => (!$required ?: 'required|').'string|max:255',
              'parent_id' => [
                 'numeric',
-                Rule::exists('account')->where(function($query){
-                    $query->('user_id', $user_id);
-                }),
+                Rule::exists('accounts', 'id')->where(function($query) use ($user_id){
+                    $query->where('user_id', $user_id);
+                })
              ],
-             'opening_balance' => 'numeric',
+             'balance' => 'numeric',
              'balance_limit' => 'numeric',
              'currency' => 'string|max:3',
              'type' => 'string',
@@ -31,7 +31,7 @@ class AccountController extends Controller
 
     public function create(Request $request){
         $body = $request->all();
-        $rv = validator($request->user()->id);
+        $rv = $this->validator($body, $request->user()->id);
 
         if($rv->fails()){
             return CustomResponse::badRequest($rv->errors()->first());
@@ -45,15 +45,15 @@ class AccountController extends Controller
 
     public function update(Request $request, $account_id = null){
         $body = $request->except('user_id');
-        $rv = validator($request->user()->id, false);
+        $rv = $this->validator($body, $request->user()->id, false);
 
         if($rv->fails()){
             return CustomResponse::badRequest($rv->errors()->first());
         }
 
-        return $request->user()
-                       ->findAccountOrFail($account_id);
-                       ->update($body)->fresh();
+        $account = $request->user()->findAccountOrFail($account_id);
+        $account->update($body);
+        return $account->fresh();
     }
 
     public function show(Request $request, $account_id = null){
