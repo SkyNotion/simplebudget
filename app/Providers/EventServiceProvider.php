@@ -13,12 +13,7 @@ class EventServiceProvider extends ServiceProvider
      * @var array
      */
     protected $listen = [
-        'App\Events\OnTransactionSaved' => [
-            'App\Listeners\OnTransactionSavedListener',
-        ],
-        'App\Events\OnTransactionDeleted' => [
-            'App\Listeners\OnTransactionDeletedListener',
-        ],
+
     ];
 
     /**

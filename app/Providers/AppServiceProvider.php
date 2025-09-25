@@ -2,6 +2,8 @@
 
 namespace App\Providers;
 
+use App\Transaction;
+use App\Observers\OnTransactionObserver;
 use Illuminate\Support\ServiceProvider;
 
 class AppServiceProvider extends ServiceProvider
@@ -13,7 +15,7 @@ class AppServiceProvider extends ServiceProvider
      */
     public function boot()
     {
-        
+        Transaction::observe(OnTransactionObserver::class);
     }
 
     /**
