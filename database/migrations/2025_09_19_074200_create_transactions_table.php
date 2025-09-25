@@ -17,9 +17,9 @@ class CreateTransactionsTable extends Migration
             $table->bigIncrements('id');
             $table->bigInteger('account_id')->unsigned();
             $table->text('description')->nullable();
-            $table->double('deposit')->nullable();
-            $table->double('withdrawal')->nullable();
-            $table->double('balance');
+            $table->double('amount')->nullable();
+            $table->char('type', 1)->nullable();
+            $table->double('balance')->nullable();
             $table->timestamps();
             $table->foreign('account_id')->references('id')->on('accounts')->onDelete('cascade');
         });
