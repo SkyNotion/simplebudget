@@ -44,8 +44,9 @@ Route::middleware('auth:api')->group(function(){
 
         Route::get('/accounts', 'Api\AccountController@index');
 
-        Route::put('/transactions', 'Api\TransactionController@create');
         Route::get('/transactions', 'Api\TransactionController@index');
+        Route::put('/transactions/{transaction_id?}', 'Api\TransactionController@create')
+             ->where('transaction_id', '[0-9]+');
         Route::delete('/transactions/{transaction_id}', 'Api\TransactionController@destroy')
              ->where('transaction_id', '[0-9]+');
 
